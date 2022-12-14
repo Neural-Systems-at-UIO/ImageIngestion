@@ -1,0 +1,52 @@
+<h1>Logged In from function</h1>
+<!-- input text for bucket name with default value test-->
+<input type="text" id="bucketName" placeholder="Bucket Name"
+  value="space-for-testing-the-nutil-web-applicat">
+<!-- input test for selected file -->
+<input type="text" id="selectedFile" placeholder="Selected File"
+  value="hbp-00138_122_381_423_s003.tif"/>
+<!-- button to convert selected tiff to DZI -->
+<button onclick="tiffToTarDZI()">Convert Tiff to DZI</button>
+<button onclick="list_bucket_files()">List Bucket Files</button>
+<!-- create a filepicker ui -->
+
+<!-- create a div to display the files -->
+<div id="files">
+  <!-- display a list of files -->
+</div>
+
+<script>
+  function list_bucket_files() {
+    // call /listBucket
+    let bucketName = document.getElementById("bucketName").value;
+    let url = "/listBucket?bucketName=" + bucketName;
+    console.log(url);
+    fetch(url)
+      .then((response) => response.json())
+      .then((data) => {
+        console.log(data);
+        // display the files
+        data = data["objects"];
+        let files = document.getElementById("files");
+        files.innerHTML = "";
+        for (let i = 0; i < data.length; i++) {
+          let file = data[i]["name"];
+
+          files.innerHTML += `<div>${file}</div>`;
+        }
+      });
+  }
+  function tiffToTarDZI() {
+    // get the bucket name
+    let bucketName = document.getElementById("bucketName").value;
+    // get the selected file
+    let selectedFile = document.getElementById("selectedFile").value;
+    let url =
+      "/tiffToTarDZI?bucketname=" +
+      bucketName +
+      "&selectedFile=" +
+      selectedFile;
+    // call /convertTiffToDzi
+    fetch(url);
+  }
+</script>
