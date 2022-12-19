@@ -1,31 +1,23 @@
 var fs = require('fs');
 const util = require('util');
 const exec = util.promisify(require('child_process').exec);
-// non promise version
-const reg_exec = require('child_process').exec;
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
-// esm fetch
 
-// use express
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+
 var express = require('express');
 const path = require('path');
-const request = require('request');
 axios = require('axios');
 const app = require("https-localhost")()
+const uuidv4 = require('uuid').v4;
 require('dotenv').config();
-// import https module
-// const app = express();
-// https app
-// enable CORS
 
 
-// enable CORS
+
 const cors = require('cors');
+
+
 app.use(cors());
 
-// var token = null;
-// var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8888,
-//     ip = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
 var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080,
     ip = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
 // let users provide bucketurl as a parameter
@@ -67,6 +59,34 @@ app.get('/listBucket', function (req, res) {
     console.log('bucket name', bucket_name)
     list_bucket_files(res, bucket_name, token);
 });
+app.get('/tiffToTarDZI', function (req, res) {
+    var bucket_name = req.query.bucketname;
+    var file_name = req.query.filename;
+    var token = req.headers.authorization;
+    console.log('bucket name', bucket_name)
+    console.log('file name', file_name)
+    console.log('token', token)
+    
+    convert_tiff_to_tarDZI(bucket_name, file_name, token, res);
+    // res.send('done');
+});
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
+app.listen(port, ip, () => {
+    console.log(`test Example app listening at http://localhost:${port}`)
+}
+);
+
+app.get('/jobStatus', function (req, res) {
+    console.log('query: ', req.query)
+    var jobID = req.query.jobID;
+    respondToJobPoll(jobID, res);
+});
+app.use(express.static(path.join(__dirname, 'public')));
 
 // function which lists all files in bucket
 function list_bucket_files(res, bucketname, token) {
@@ -93,29 +113,6 @@ function list_bucket_files(res, bucketname, token) {
     });
 
 }
-app.get('/tiffToTarDZI', function (req, res) {
-    var bucket_name = req.query.bucketname;
-    var file_name = req.query.filename;
-    var token = req.headers.authorization;
-    console.log('bucket name', bucket_name)
-    console.log('file name', file_name)
-    console.log('token', token)
-    convert_tiff_to_tarDZI(bucket_name, file_name, token);
-    res.send('done');
-});
-app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next();
-});
-
-app.listen(port, ip, () => {
-    console.log(`test Example app listening at http://localhost:${port}`)
-}
-);
-
-
-app.use(express.static(path.join(__dirname, 'public')));
 
 // use java cli tool pyramidio/pyramidio-cli.1.1.4.jar
 // to convert image to dzi
@@ -146,7 +143,7 @@ function dzi_to_tar(dzi_folder) {
 function curl_and_save(bucket_name, file_name) {
     // split url to get filename
 
-    requestURL = "https://data-proxy.ebrains.eu/api/v1/buckets/" + bucket_name + '/' + file_name + "?inline=false&redirect=false"
+    requestURL = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file_name}?inline=false&redirect=false`
     console.log('requestURL', requestURL)
     promise = axios.get(requestURL, {
         headers: {
@@ -154,12 +151,9 @@ function curl_and_save(bucket_name, file_name) {
             'Content-Type': 'application/json'
         }
     }).then(function (response) {
-        // multi line string
 
-        // console.log('\n\n\n\nresponse\n\n\n\n')
-        // console.log(response.data.url);
 
-        var cmd = "curl '" + response.data.url + "' -o '" + file_name + "'";
+        var cmd = `curl "${response.data.url}" -o "${file_name}"`;
         // console.log(cmd);
         promise = exec(cmd, function (error, stdout, stderr) {
             console.log(stdout);
@@ -171,26 +165,55 @@ function curl_and_save(bucket_name, file_name) {
 
 }
 
-// function convert_tiff_to_tarDZI(bucket_name, file_name) {
-//     // download tiff file at url
-//     curl_and_save(bucket_name, file_name).then(image_to_dzi(file_name)).then(
-//         dzi_folder = file_name.split('.')[0] + '_files',
-//         dzi_to_tar(dzi_folder)
 
-//     );
-// }
+var RunningJobs = {};
+function initJob() {
+    // generate job id
+    var jobID = uuidv4();
+    // add job to running jobs
+    RunningJobs[jobID] = {
+        status: 'running',
+        progress: 0
+    }
+    // return job id
+    return jobID;
+}
+function updateJob(jobID, status, progress) {
+    RunningJobs[jobID] = {
+        status: status,
+        progress: progress
+    }
+}
+function respondToJobPoll(jobID, res) {
+    // check if job exists
+    console.log(RunningJobs)
+    console.log(jobID)
+    console.log(RunningJobs[jobID])
+    if (!RunningJobs[jobID]) {
+        res.send({
+            status: 'does not exist',
+            progress: 0
+        })
+    }
+    else {
+    res.send(RunningJobs[jobID]);
+    }
+}
 
 
-function convert_tiff_to_tarDZI(bucket_name, file_name, token) {
+function convert_tiff_to_tarDZI(bucket_name, file_name, token, res) {
     // console.log(token)
     // download tiff file at url
-    requestURL = "https://data-proxy.ebrains.eu/api/v1/buckets/" + bucket_name + '/' + file_name + "?inline=false&redirect=false"
+    requestURL = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file_name}?inline=false&redirect=false`
     console.log('requestURL', requestURL)
+    
     requestHeaders = {
         'Authorization': token,
         'Content-Type': 'application/json'
     }
     console.log('requestHeaders', requestHeaders)
+    var jobID = initJob();
+    res.send(jobID);
     promise = axios.get(requestURL, {
         headers: requestHeaders
     }).then(function (response) {
@@ -199,22 +222,32 @@ function convert_tiff_to_tarDZI(bucket_name, file_name, token) {
         console.log('\n\n\n\nresponse\n\n\n\n')
         console.log(response.data.url);
 
-        var cmd = "curl '" + response.data.url + "' -o '" + file_name + "'";
+        var cmd = `curl "${response.data.url}" -o "${file_name}"`;
+        // res.
+        // res.send('uploading file')
+        updateJob(jobID, 'Uploading file', 10);
         console.log(cmd);
         exec(cmd, { maxBuffer: 1024 * 500 }).then(function () {
             console.log('downloaded file');
-            var cmd = 'java -jar pyramidio/pyramidio-cli-1.1.4.jar -i ' + file_name + ' -icr 0.1 -tf jpg  -o . & ';
+            var cmd = `java -jar pyramidio/pyramidio-cli-1.1.4.jar -i ${file_name} -icr 0.1 -tf jpg  -o . & `;
             console.log(cmd)
+            updateJob(jobID, 'Converting to DZI', 30);
+
+            // res.send('converting to dzi')
             exec(cmd, { maxBuffer: 1024 * 500 }).then(function () {
                 console.log('converted to dzi');
                 dzi_folder = file_name.split('.')[0] + '_files';
-                var cmd = 'tar -cf ' + dzi_folder + '.tar ' + dzi_folder;
+                var cmd = `tar -cf ${dzi_folder}.tar ${dzi_folder}`;
+                // res.send('converting to tar')
+                updateJob(jobID, 'Converting to tar', 70);
+
                 // execute command and do not run asyncronously
                 exec(cmd, { maxBuffer: 1024 * 500 }).then(function () {
-                    cmd = "python tarindexer.py -i " + dzi_folder + '.tar ' + file_name.split('.')[0] + '.index';
+                    updateJob(jobID, 'indexing tar', 80);
+                    cmd = `python tarindexer.py -i ${dzi_folder}.tar ${file_name.split('.')[0]}.index`;
                     exec(cmd, { maxBuffer: 1024 * 500 }).then(function () {
                         // post index file to bucket
-                        api_url = "https://data-proxy.ebrains.eu/api/v1/buckets/" + bucket_name + '/' + file_name.split('.')[0] + '.index'
+                        api_url = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file_name.split('.')[0]}.index`
                         console.log('api_url', api_url)
                         // i need to make a put request to the api_url
                         // with the index file as the body
@@ -222,38 +255,68 @@ function convert_tiff_to_tarDZI(bucket_name, file_name, token) {
 
                         // console.log('Bearer ' + token)
                         // make a put request to the api_url
-
+                        var headers = {
+                            'Authorization':  token,
+                            'Content-Type': 'application/json'
+                        }
+                        console.log(headers)
                         axios.put(api_url, {}, {
-                            headers: {
-                                'Authorization': 'Bearer ' + token,
-                                'Content-Type': 'application/json'
-                            }
+                            headers : headers
                         }).then(function (response) {
+                            updateJob(jobID, 'uploading tar', 90);
+
                             destination = response.data.url
                             // upload index file to destination
                             console.log('starting curl PUT')
-                            cmd = "curl -X PUT -T " + file_name.split('.')[0] + '.index "' + destination + '"';
+                            cmd = `curl -X PUT -T "${file_name.split('.')[0]}.index" "${destination}"`;
                             console.log('finishing curl PUT');
                             exec(cmd, { maxBuffer: 1024 * 500 }).then(function () {
-                                new_url = "https://data-proxy.ebrains.eu/api/v1/buckets/" + bucket_name + '/' + file_name.split('.')[0] + '_files.tar'
+                                new_url = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file_name.split('.')[0]}_files.tar`
                                 console.log('starting axios put')
                                 axios.put(new_url, {}, {
                                     headers: {
-                                        'Authorization': 'Bearer ' + token,
+                                        'Authorization': token,
                                         'Content-Type': 'application/json'
                                     }
                                 })
                                     .then(function (response) {
+                                        updateJob(jobID, 'finishing up...', 95);
+
                                         console.log('finishing axios put')
                                         destination = response.data.url
                                         // upload index file to destination
-                                        cmd = "curl -X PUT -T '" + dzi_folder + ".tar' '" + destination + "'";
+                                        cmd = `curl -X PUT -T "${dzi_folder}.tar" "${destination}"`;
                                         console.log('here')
                                         console.log(cmd)
                                         exec(cmd)
-                                        viewer_link = 'https://data-proxy.ebrains.eu/api/v1/public/buckets/' + bucket_name + '/' + file_name.split('.')[0] + '.index'
+                                        viewer_link = `https://data-proxy.ebrains.eu/api/v1/public/buckets/${bucket_name}/${file_name.split('.')[0]}.index`
                                         console.log('viewer_link', viewer_link)
+                                    }).then(function () {
+                                    
+                                        var dzi_file = file_name.split('.')[0] + '.dzi';
+                                        api_url = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${dzi_file}`
+                                        var headers = {
+                                            'Authorization': token,
+                                            'Content-Type': 'application/json'
+                                        }
+                                        axios.put(api_url, {}, {
+                                            headers: headers
+                                        }).then(function (response) {
+                                            destination = response.data.url
+                                            // upload index file to destination
+                                            cmd = `curl -X PUT -T "${dzi_file}" "${destination}"`;
+                                        
+                                            exec(cmd).then(console.log('uploaded final dzi'))
+                                        }).then(function () {
+                                            updateJob(jobID, 'Done', 100);
+                                        })
                                     })
+                                    
+                                    
+                                    
+                                    .catch(function (error) {
+                                        console.log(error);
+                                        console.log('problem...')
                             });
 
 
@@ -277,12 +340,13 @@ function convert_tiff_to_tarDZI(bucket_name, file_name, token) {
         console.log('or this?')
     })
     console.log('what about this?')
+});
 }
 
 
 
 function iterate_over_bucket_files(bucketname, folder_name) {
-    var requestURl = "https://data-proxy.ebrains.eu/api/v1/buckets/" + bucketname + '/' + folder_name + "?inline=false&redirect=true";
+    var requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}/${folder_name}?inline=false&redirect=true`;
     // fetch list of files from bucket
 
     fetch(requestURl)
@@ -292,7 +356,7 @@ function iterate_over_bucket_files(bucketname, folder_name) {
             data = data['objects'];
             for (var i = 0; i < data.length; i++) {
                 var name = data[i]['name'];
-                var file_url = folder_url + '/' + name;
+                var file_url = `${folder_url}/${name}`;
                 console.log(file_url)
                 // download file
                 split_name = name.split('/');
@@ -302,7 +366,7 @@ function iterate_over_bucket_files(bucketname, folder_name) {
                 // convert image to dzi
                 image_to_dzi(file_name)
                 // convert dzi to tar
-                dzi_folder = file_name.split('.')[0] + '_files';
+                dzi_folder = `${file_name.split('.')[0]}_files`;
                 dzi_to_tar(dzi_folder);
             }
         }).catch(function (error) {
@@ -329,12 +393,13 @@ var token_ = null
 function get_token(code, res) {
     var target_url = "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect/token";
     // console.log('client_secret', process.env.CLIENT_SECRET)
+    console.log('uri', `${process.env.URL}/app`)
     const params = new URLSearchParams({
         'grant_type': 'authorization_code',
         'client_id': 'LocalDevelopmentServer',
         'code': code,
         'client_secret': process.env.CLIENT_SECRET,
-        'redirect_uri': 'https://127.00.0.1:8080/app'
+        'redirect_uri': `${process.env.URL}/app`
 
     });
     console.log('params', params)
@@ -356,6 +421,7 @@ function get_token(code, res) {
         res.send(token_);
     }).catch(error => {
         // console.log(error);
+        console.log(error)
         res.status(error.response.status);
         res.send(error);
     });

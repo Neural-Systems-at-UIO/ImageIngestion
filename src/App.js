@@ -2,7 +2,7 @@ import { setChonkyDefaults } from 'chonky';
 import { ChonkyIconFA } from 'chonky-icon-fontawesome';
 import { FullFileBrowser, ChonkyActions } from 'chonky';
 import logo from './logo.svg';
-
+import { Progress, Space } from 'antd';
 import './App.css';
 import React, { useEffect, useState } from 'react';
 // import Button from '@material-ui/core/Button';
@@ -47,49 +47,8 @@ export const MyEmojiIcon = React.memo((props) => {
 // make stateful files
 
 
-function FileActionHandler(data) {
-  // open a file picker UI
-  // console.log('data', data);
-  if (data.id == 'upload_files') {
-    // console.log('token', token);
-    // ListBucketFiles(setFiles);
-    // ListBucketFiles();
-  }
-  if (data.id == 'GenerateBrain') {
-    var selectedFiles = data.state.selectedFilesForAction[0].name;
-    console.log(data)
-    console.log('selectedFiles', selectedFiles);
-    var bucket_name = 'space-for-testing-the-nutil-web-applicat'
 
-    // request to generate brain
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', `https://localhost:3000/tiffToTarDZI?bucketname=${bucket_name}&filename=${selectedFiles}`, true);
-    // set token to header
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-    xhr.send();
 
-  }
-}
-// function getToken() {
-//   // get code from url
-//   const xhr = new XMLHttpRequest();
-//   // get code from url
-//   const urlParams = new URLSearchParams(window.location.search);
-//   const code = urlParams.get('code');
-//   console.log(`https://localhost:3000/auth?code=${code}`)
-//   xhr.open('GET', 'https://localhost:3000/auth?code=' + code, true);
-//   xhr.send();
-//   xhr.onreadystatechange = function () {
-//     if (xhr.readyState == 4 && xhr.status == 200) {
-//       token = xhr.responseText
-//       console.log('token', token);
-//       return token;
-//     }
-//     else {
-//       return null;
-//     }
-//   }
-//   // }
 
 // write promise to get token
 function getToken() {
@@ -170,10 +129,14 @@ function ListBucketFiles(setFiles) {
           newFile = { id: files[i].subdir, name: files[i].subdir, isDir: true, modDate: files[i].last_modified, size: files[i].bytes };
         }
         else {
-          // convert modeDate to date
+          // check if file is an image including tif, tiff, jpg, jpeg, png, check if it is in the list
+          var accepted_types = ['tif', 'tiff', 'jpg', 'jpeg', 'png'];
+          var file_type = files[i].name.split('.').pop();
+          if (accepted_types.includes(file_type)) {
 
-          newFile = { id: files[i].hash, name: files[i].name, isDir: false, modDate: files[i].last_modified, size: files[i].bytes };
 
+            newFile = { id: files[i].hash, name: files[i].name, isDir: false, modDate: files[i].last_modified, size: files[i].bytes };
+          }
         }
         newFiles.push(newFile);
         // setFiles(files[i]);
@@ -209,18 +172,58 @@ myFileActions[5].hotkeys = ['ctrl+a'];
 myFileActions[6].hotkeys = ['esc'];
 myFileActions[6].button.group = '';
 myFileActions[7].button.icon = 'brainEmoji';
+var returnStatus = '';
+function pollJobStatus(jobID, SetMessage, SetProgressValue) {
+  var xhr = new XMLHttpRequest();
+  console.log('jobID', jobID)
+  xhr.open('GET', `https://localhost:3000/jobStatus?jobID=` + jobID  , true);
+  // add query string
+  console.log('returnStatus', returnStatus)
+  if  (returnStatus == 'Done') {
+    returnStatus = '';
+    clearInterval(poller);
+    return;
+  }
+  
+  xhr.send();
+  xhr.onreadystatechange = function () {
+    if (xhr.status == 200 && xhr.readyState == 4) {
+      console.log('status 200')
+      var jobStatus = xhr.responseText;
+      jobStatus = JSON.parse(jobStatus);
+      returnStatus = jobStatus['status'];
+      SetProgressValue(jobStatus['progress']);
+      SetMessage(jobStatus['status'])
+    }
+  }
+}
+var poller = ''
+function pollUntilDone(jobID, SetMessage, SetProgressValue) {
+
+  poller = setInterval(pollJobStatus, 1000, jobID, SetMessage, SetProgressValue);
+}
 
 
+var jobID = '';
 function App() {
+  const [Message,SetMessage]  = useState('');
+  const [ProgressValue,SetProgressValue]  = useState(0);
+  function MessageBox(props) {
+    return (
+      <div>
+        <Progress type="circle" percent={ProgressValue}></Progress>
+  
+        <h1>Message</h1>
+        <p>{props.message}</p>
+      </div>
+    )
+  }
   const [files, setFiles] = useState([
-    { id: 'lht', name: 'Projects', isDir: true },
-    {
-      id: 'mcd',
-      name: 'chonky-sphere-v2.png',
-      thumbnailUrl: 'https://chonky.io/chonky-sphere-v2.png',
-    },
-  ]);
+    null
+     ]);
+
   useEffect(() => {
+
     getToken().then((token) => {
       if (token != null) {
         console.log('first run')
@@ -236,14 +239,64 @@ function App() {
       console.log('failed');
     })
   }, [])
+  
+  function FileActionHandler(data) {
+    // open a file picker UI
+    // console.log('data', data);
+    if (data.id == 'upload_files') {
+      // var xhr = new XMLHttpRequest();
+      // xhr.open('GET', `https://localhost:3000/jobStatus?jobID=${jobID}` , true);
+      // xhr.send();
+      // xhr.onreadystatechange = function () {
+      //   if (xhr.status == 200 && xhr.readyState == 4) {
+      //     console.log('status 200')
+      //     var jobStatus = xhr.responseText;
+      //     jobStatus = JSON.parse(jobStatus);
+      //     console.log('jobStatus', jobStatus);
+      //     SetMessage(jobStatus['status'])
+      //   }
+      // }
+      // SetMessage('Uploading Files');
 
+      // console.log('token', token);
+      // ListBucketFiles(setFiles);
+      // ListBucketFiles();
+    }
+    if (data.id == 'GenerateBrain') {
+      var selectedFiles = data.state.selectedFilesForAction[0].name;
+      console.log(data)
+      console.log('selectedFiles', selectedFiles);
+      var bucket_name = 'space-for-testing-the-nutil-web-applicat'
+  
+      // request to generate brain
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', `https://localhost:3000/tiffToTarDZI?bucketname=${bucket_name}&filename=${selectedFiles}`, true);
+      // set token to header
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.send();
+      console.log()
+      xhr.onreadystatechange = function () {
+        if (xhr.status == 200 && xhr.readyState == 4) {
+          console.log('status', xhr.status)
+          jobID = xhr.responseText;
+          console.log('jobID numero', jobID)
+          pollUntilDone(jobID, SetMessage, SetProgressValue);
+        }
 
+        // server will respond first to confirm that the file has been uploaded with a 1xx status code
+      }
+      // poll job status every 5 seconds
+      // kill the interval when pollJobStatus returns a 200 status code
+
+      // pollJobStatus(jobID);
+    }
+  }
 
 
   const folderChain = [{ id: 'xcv', name: 'Demo', isDir: true }]
   return (
 
-    <div style={{ height: '100vh' }}>
+    <div style={{ height: '70vh' }}>
       <input
         type="file"
         style={{ display: 'none' }}
@@ -254,8 +307,9 @@ function App() {
 
         <FileToolbar />
         <FileList />
-        <FileContextMenu />
+        {/* <FileContextMenu /> */}
       </FileBrowser>
+      <MessageBox message={Message} />
 
     </div >
   )

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>PyramidIO test visualization</title>
+        
+        <style>
+          #openseadragon {
+              position: absolute;
+              top: 0;
+              left: 0;
+              bottom: 0;
+              right: 0;
+          }
+        </style>
+    </head>
+    <body>
+        <div id="openseadragon"></div>
+
+        <script src='https://openseadragon.github.io/openseadragon/openseadragon.min.js'></script>
+        
+        <script>
+        
+          OpenSeadragon({
+              id:              "openseadragon",
+              prefixUrl:       "https://openseadragon.github.io/openseadragon/images/",
+              tileSources:     "https://raw.githubusercontent.com/darwinjob/pyramidio-bioformats/master/test-data/tiled256_jpg.dzi"
+          });
+        
+        </script>
+    </body>
+</html>

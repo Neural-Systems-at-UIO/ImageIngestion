@@ -6,6 +6,7 @@
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
+    "antd": "^5.0.7",
     "axios": "^1.2.1",
     "child_process": "^1.0.2",
     "chonky": "^2.3.2",
@@ -15,6 +16,7 @@
     "fs": "^0.0.1-security",
     "https-localhost": "^4.7.1",
     "node-fetch": "^3.3.0",
+    "nodemon": "^2.0.20",
     "path": "^0.12.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -24,16 +26,17 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "PORT=8080 HTTPS=true react-scripts start ",
+    "start": "set PORT=8080&&set HTTPS=true&&react-scripts start ",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "debug": "react-scripts start"
   },
   "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
+    "ignorePatterns": [
+      "src/*",
+      "!src/*",
+      "*"
     ]
   },
   "browserslist": {
