@@ -26,6 +26,7 @@ app.get("/bucketurl/", (req, res) => {
   iterate_over_bucket_files(bucket_url);
   res.send("done");
 });
+
 app.get("/auth/", (req, res) => {
   var code = req.query.code;
   get_token(code, res);
@@ -46,20 +47,34 @@ app.get("/app", function (req, res) {
 
 app.get("/listBucket", function (req, res) {
   // get token from header
+  console.log(req.query.URL);
   var token = req.headers.authorization;
   //
   var bucketName = req.query.bucketName;
+  var folderName = req.query.folderName;
 
-  list_bucket_files(res, bucketName, token);
+  list_bucket_files(res, bucketName, folderName, token);
 });
+
 app.get("/tiffToTarDZI", function (req, res) {
   var bucketName = req.query.bucketname;
   var file_name = req.query.filename;
   var token = req.headers.authorization;
-
   convert_tiff_to_tarDZI(bucketName, file_name, token, res);
   // res.send('done');
 });
+
+app.get("/tiffListToTarDZI", function (req, res) {
+  var bucketName = req.query.bucketname;
+  var file_list = req.query.filelist;
+  file_list = file_list.split(",");
+  var token = req.headers.authorization;
+  console.log("file_list", file_list);
+  console.log("bucketName", bucketName);
+  // console.log('token', token)
+  convert_list_of_tiffs_to_tarDZI(bucketName, file_list, token, res);
+});
+
 app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -78,8 +93,11 @@ app.get("/jobStatus", function (req, res) {
 app.use(express.static(path.join(__dirname, "public")));
 
 // function which lists all files in bucket
-function list_bucket_files(res, bucketname, token) {
-  requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}?limit=50&delimiter=/`;
+function list_bucket_files(res, bucketname, folderName, token) {
+  console.log("bucketname", bucketname);
+  console.log("folderName", folderName);
+  requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}&prefix=${folderName}&limit=50&delimiter=/`;
+  console.log("requestURl", requestURl);
   axios
     .get(requestURl, {
       headers: {
@@ -143,11 +161,13 @@ function curl_and_save(bucketName, file_name) {
 }
 
 var RunningJobs = {};
-function initJob() {
+function initJob(total_images) {
   // generate job id
   var jobID = uuidv4();
   // add job to running jobs
   RunningJobs[jobID] = {
+    current_image: 0,
+    total_images: total_images,
     status: "running",
     progress: 0,
   };
@@ -155,10 +175,9 @@ function initJob() {
   return jobID;
 }
 function updateJob(jobID, status, progress) {
-  RunningJobs[jobID] = {
-    status: status,
-    progress: progress,
-  };
+  console.log("RunningJobs", RunningJobs);
+  RunningJobs[jobID].status = status;
+  RunningJobs[jobID].progress = progress;
 }
 function respondToJobPoll(jobID, res) {
   // check if job exists
@@ -252,7 +271,7 @@ function uploadToBucket(bucketName, file_name, token) {
 }
 
 function uploadListToBucket(bucketName, file_list, token, jobID) {
-  updateJob(jobID, "uploading tar", 90);
+  updateJob(jobID, "Uploading to bucket", 80);
   return Promise.all(
     file_list.map(function (file_name) {
       return uploadToBucket(bucketName, file_name, token);
@@ -260,31 +279,46 @@ function uploadListToBucket(bucketName, file_list, token, jobID) {
   );
 }
 
-function convert_tiff_to_tarDZI(bucketName, fileName, token, res) {
-  var jobID = initJob();
-  res.send(jobID);
-  var stripFileName = fileName.split(".")[0];
-  var indexFile = `${stripFileName}.index`;
-  var dziFile = `${stripFileName}.dzi`;
-  var dziFolder = `${stripFileName}_files`;
-  var dziTar = `${dziFolder}.tar`;
-  var file_list = [indexFile, dziFile, dziTar];
-  DownloadFromBucket(bucketName, fileName, token, jobID)
-    .then(() => createPyramid(fileName, jobID))
-    .then(() => tarDZI(fileName, jobID))
-    .then(() => indexTar(fileName, jobID))
-    .then(() => uploadListToBucket(bucketName, file_list, token))
-    .then(() => updateJob(jobID, "Done", 100))
-    .catch((error) => console.log(error));
+function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
+  return new Promise(function (resolve, reject) {
+    var stripFileName = fileName.split(".")[0];
+    var indexFile = `${stripFileName}.index`;
+    var dziFile = `${stripFileName}.dzi`;
+    var dziFolder = `${stripFileName}_files`;
+    var dziTar = `${dziFolder}.tar`;
+    var file_list = [indexFile, dziFile, dziTar];
+    DownloadFromBucket(bucketName, fileName, token, jobID)
+      .then(() => createPyramid(fileName, jobID))
+      .then(() => tarDZI(fileName, jobID))
+      .then(() => indexTar(fileName, jobID))
+      .then(() => uploadListToBucket(bucketName, file_list, token, jobID))
+      .then(() => updateJob(jobID, "Done", 100))
+      .then(() => resolve())
+      .catch((error) => {
+        console.log(error);
+        updateJob(jobID, "Error", 0);
+        reject(error);
+      });
+  });
 }
 
-// .catch(function (error) {
-//     ;
-//
-// }
-// );
-// vsCode regex match all lines that start with console.log
-// console.log\((.*)\)
+async function convert_list_of_tiffs_to_tarDZI(
+  bucketName,
+  file_list,
+  token,
+  res
+) {
+  file_list_length = file_list.length;
+  var jobID = initJob((total_images = file_list_length));
+  res.send(jobID);
+
+  // loop through list of files and after the previous promise is resolved, start the next one
+  for (var i = 0; i < file_list_length; i++) {
+    var file_name = file_list[i];
+    await convert_tiff_to_tarDZI(bucketName, file_name, token, jobID);
+    RunningJobs[jobID]["current_image"] = i + 1;
+  }
+}
 
 function iterate_over_bucket_files(bucketname, folder_name) {
   var requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}/${folder_name}?inline=false&redirect=true`;
