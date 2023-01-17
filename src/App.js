@@ -15,6 +15,7 @@ import {
 } from "chonky";
 
 import { defineFileAction, FileData } from "chonky";
+
 import { Nullable } from "tsdef";
 // set cors to allow all
 
@@ -347,6 +348,7 @@ function App() {
     getToken()
       .then((token) => {
         if (token != null) {
+          console.log(token)
           token = token;
         };
       // set url to localhost:3000

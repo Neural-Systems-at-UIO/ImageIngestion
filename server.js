@@ -28,7 +28,9 @@ app.get("/bucketurl/", (req, res) => {
 });
 
 app.get("/auth/", (req, res) => {
+  console.log('request received')
   var code = req.query.code;
+  console.log('code', code)
   get_token(code, res);
 });
 // serve index.html
@@ -39,10 +41,11 @@ app.get("/", function (req, res) {
 });
 
 app.get("/app", function (req, res) {
-  var code = req.query.code;
-  get_token(code, res);
-  // redirect to destination from env file
-  res.redirect("https://localhost:3000");
+  // var code = req.query.code;
+  // get_token(code, res);
+  // // redirect to the build index.html
+  // console.log(path.join(__dirname, "public", "index.html"))
+  res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
 app.get("/listBucket", function (req, res) {
@@ -61,7 +64,7 @@ app.get("/tiffToTarDZI", function (req, res) {
   var file_name = req.query.filename;
   var token = req.headers.authorization;
   convert_tiff_to_tarDZI(bucketName, file_name, token, res);
-  // res.send('done');
+  res.send('done');
 });
 
 app.get("/tiffListToTarDZI", function (req, res) {
@@ -83,7 +86,7 @@ app.use(function (req, res, next) {
   );
   next();
 });
-
+app.use(express.static("build"));
 app.listen(port, ip, () => {});
 
 app.get("/jobStatus", function (req, res) {
@@ -364,7 +367,7 @@ function get_token(code, res) {
     client_secret: process.env.CLIENT_SECRET,
     redirect_uri: `${process.env.URL}/app`,
   });
-
+  console.log(params.toString())
   // make POST request to get token
   axios({
     method: "post",
@@ -378,7 +381,7 @@ function get_token(code, res) {
       // send token to client
       //
       token_ = response.data["access_token"];
-
+      console.log(token_)
       // set status to 200
       res.status(response.status);
 
@@ -386,7 +389,7 @@ function get_token(code, res) {
     })
     .catch((error) => {
       // ;
-
+      console.log(error)
       res.status(error.response.status);
       res.send(error);
     });
