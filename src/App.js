@@ -16,6 +16,7 @@ import {
 
 import { defineFileAction, FileData } from "chonky";
 import { Nullable } from "tsdef";
+// set cors to allow all
 
 var token = null;
 
@@ -28,6 +29,7 @@ const SortFilesBySize = defineFileAction({
     toolbar: true,
   },
 });
+
 // Somewhere in your `index.ts`:
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
 
@@ -37,6 +39,8 @@ const myEmojiMap = {
   japanEmoji: "🗾",
   brainEmoji: "🧠",
 };
+
+
 export const MyEmojiIcon = React.memo((props) => {
   const emojiIcon = myEmojiMap[props.icon];
   if (emojiIcon) {
@@ -44,90 +48,142 @@ export const MyEmojiIcon = React.memo((props) => {
   }
   return <ChonkyIconFA {...props} />;
 });
-// make stateful files
 
-// write promise to get token
 function getToken() {
   return new Promise((resolve, reject) => {
-    // get code from url
     const xhr = new XMLHttpRequest();
-    // get code from url
     const urlParams = new URLSearchParams(window.location.search);
-    console.log("code", urlParams.get("code"));
     const code = urlParams.get("code");
-    // console.log('requesting token')
-    // console.log(`https://localhost:3000/auth?code=${code}`)
+ 
     xhr.open("GET", "https://localhost:3000/auth?code=" + code, true);
     xhr.send();
-    // xhr promise
     xhr.onreadystatechange = function () {
       if (xhr.status == 200 && xhr.readyState == 4) {
-        console.log("status 200");
-        // console.log(xhr)
         token = xhr.responseText;
-        // console.log('token', token);
         resolve(token);
-      } else {
-        // log error
-        console.log("error");
-        // reject('error');
       }
     };
   });
 }
 
-function UploadFiles() {
-  // console.log('')
+function UploadFiles(curDirPath, setFiles) {
   const fileInput = document.getElementById("fileUpload");
   fileInput.click();
   fileInput.addEventListener("change", (e) => {
-    // console.log('fileInput', fileInput.files);
-    const files = fileInput.files;
-    const formData = new FormData();
-    for (let i = 0; i < files.length; i++) {
-      formData.append("file", files[i]);
+    for (let i = 0; i < fileInput.files.length; i++) {
+      const file = fileInput.files[i];
+      const xhr = new XMLHttpRequest();
+      console.log(file)
+      // put request to upload file
+      xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/space-for-testing-the-nutil-web-applicat/${file.name}`, true);
+      // add query strings
+      // set a uthorization header
+      xhr.setRequestHeader("Authorization", "Bearer " + token);
+      // send without body 
+      xhr.send();
+      xhr.onreadystatechange = function () {
+        if (xhr.status == 200 && xhr.readyState == 4) {
+          // log success
+          // post image to bucket
+          var target_url = xhr.responseText;
+          console.log('target_url1')
+          console.log(target_url)
+          // convert to json
+          target_url = JSON.parse(target_url)
+          target_url = target_url.url
+          console.log('target_url2', target_url)
+          console.log(xhr.response)
+          const xhr2 = new XMLHttpRequest();
+          xhr2.open("PUT", target_url, true);
+          // xhr2.setRequestHeader("Content-Type", "application/octet");
+          // fix bug AWS authentication requires a valid Date or x-amz-date header
+          // xhr2.setRequestHeader("Authorization", "Bearer " + token);
+          // set date header to z-amz-date
+          xhr2.setRequestHeader("x-amz-date", new Date().toUTCString());
+          xhr2.send(file);
+          xhr2.onreadystatechange = function () {
+            if (xhr2.status == 201 && xhr2.readyState == 4) {
+              // log success
+              console.log('success')
+              ListBucketFiles(
+                setFiles,
+                "space-for-testing-the-nutil-web-applicat",
+                curDirPath
+              );
+            } else {
+              // log error
+              console.log(xhr2.status)
+              console.log('error')
+              
+            }
+          }
+
+        } else {
+          // log error
+          console.log('error')
+        }
+      }
     }
-    const xhr = new XMLHttpRequest();
-    xhr.open("POST", "https://localhost:3000/upload", true);
-    xhr.send(formData);
   });
+
 }
 
 function filterForImageAndSubdir(files) {
   var newFiles = [];
-  var newFile = [];
+  var accepted_types = ["tif", "tiff", "jpg", "jpeg", "png"];
   for (let i = 0; i < files.length; i++) {
-    // console.log(files[i])
-    // check if subdir key is in file
-    if (Object.keys(files[i]).includes("subdir")) {
-      newFile = {
-        id: files[i].subdir,
-        name: files[i].subdir,
-        isDir: true,
-        modDate: files[i].last_modified,
-        size: files[i].bytes,
-      };
-    } else {
-      // check if file is an image including tif, tiff, jpg, jpeg, png, check if it is in the list
-      var accepted_types = ["tif", "tiff", "jpg", "jpeg", "png"];
-      var file_type = files[i].name.split(".").pop();
-      if (accepted_types.includes(file_type)) {
-        newFile = {
-          id: files[i].hash,
-          name: files[i].name,
-          isDir: false,
-          modDate: files[i].last_modified,
-          size: files[i].bytes,
-        };
-      }
+    var newFile = getNewFile(files[i], accepted_types);
+    if (newFile != null) {
+      newFiles.push(newFile);
     }
-    newFiles.push(newFile);
   }
   return newFiles;
 }
 
+function getNewFile(file, accepted_types) {
+  var newFile = {};
+
+  // check if subdir key is in file
+  if (Object.keys(file).includes("subdir")) {
+    var name = file.subdir;
+    var id = file.subdir;
+    var isDir = true;
+  } else if (Object.keys(file).includes("name")){
+    var filetype = file.name.split(".").pop();
+    if (accepted_types.includes(filetype)) {
+      var name = file.name;
+      var id = file.name;
+      var isDir = false;
+    }
+    else {
+      return null;
+    }
+  } else {
+    return null;
+  }
+
+  // remove trailing slash from name with regex
+  name = name.replace(/\/$/, "");
+  // split name by slash
+  name = name.split("/").pop();
+  // if isdir add trailing slash
+  if (isDir) {
+    name = name + "/";
+  }
+
+  newFile = {
+    id: id,        
+    // get the second to last element in the array
+    name: name,
+    isDir: isDir,
+    modDate: file.last_modified,
+    size: file.bytes,
+  };
+
+  return newFile;
+}
+
 function ListBucketFiles(setFiles, bucket_name, folder_name) {
-  // console.log('token', token);
   const xhr = new XMLHttpRequest();
   // var bucket_name = "space-for-testing-the-nutil-web-applicat";
   xhr.open(
@@ -140,28 +196,25 @@ function ListBucketFiles(setFiles, bucket_name, folder_name) {
   // set a uthorization header
   xhr.setRequestHeader("Authorization", "Bearer " + token);
   xhr.send();
-  // console.log('test')
   xhr.onreadystatechange = function () {
     if (xhr.status == 200 && xhr.readyState == 4) {
-      console.log("status 200");
       var files = xhr.responseText;
 
-      console.log("here");
-      console.log(files);
+
       files = JSON.parse(files).objects;
-      console.log("after parse");
-      console.log(files);
+
       // iterate through files
       var newFiles = filterForImageAndSubdir(files);
       setFiles(newFiles);
-      // console.log('fciles', files);
       // return files;
     } else {
-      console.log("error", xhr);
-      console.log("error");
+
     }
   };
 }
+
+
+
 const myFileActions = [
   ChonkyActions.CreateFolder,
   ChonkyActions.UploadFiles,
@@ -172,17 +225,28 @@ const myFileActions = [
   ChonkyActions.ClearSelection,
   SortFilesBySize,
 ];
-myFileActions[1].button.group = "";
-myFileActions[2].button.group = "";
-myFileActions[3].button.group = "";
-myFileActions[4].button.toolbar = false;
-myFileActions[4].button.requiresSelection = true;
-myFileActions[5].button.group = "";
-myFileActions[5].hotkeys = ["ctrl+a"];
 
-myFileActions[6].hotkeys = ["esc"];
-myFileActions[6].button.group = "";
-myFileActions[7].button.icon = "brainEmoji";
+
+
+const uploadFileAction = myFileActions.find(action => action.id === ChonkyActions.UploadFiles.id);
+uploadFileAction.button.group = "";
+const downloadFileAction = myFileActions.find(action => action.id === ChonkyActions.DownloadFiles.id);
+downloadFileAction.button.group = "";
+const deleteFileAction = myFileActions.find(action => action.id === ChonkyActions.DeleteFiles.id);
+deleteFileAction.button.group = "";
+const enableListViewAction = myFileActions.find(action => action.id === ChonkyActions.EnableListView.id);
+enableListViewAction.button.toolbar = false;
+enableListViewAction.button.requiresSelection = true;
+const selectAllFilesAction = myFileActions.find(action => action.id === ChonkyActions.SelectAllFiles.id);
+selectAllFilesAction.button.toolbar = false;
+selectAllFilesAction.button.group = "";
+selectAllFilesAction.hotkeys = ["ctrl+a"];
+const clearSelectionAction = myFileActions.find(action => action.id === ChonkyActions.ClearSelection.id);
+clearSelectionAction.button.toolbar = false;
+clearSelectionAction.hotkeys = ["esc"];
+clearSelectionAction.button.group = "";
+const sortFilesBySizeAction = myFileActions.find(action => action.id === SortFilesBySize.id);
+sortFilesBySizeAction.button.icon = "brainEmoji";
 var returnStatus = "";
 function pollJobStatus(
   jobID,
@@ -193,10 +257,8 @@ function pollJobStatus(
   SetProgressImage
 ) {
   var xhr = new XMLHttpRequest();
-  console.log("jobID", jobID);
   xhr.open("GET", `https://localhost:3000/jobStatus?jobID=` + jobID, true);
   // add query string
-  console.log("returnStatus", returnStatus);
   if (returnStatus == "Done") {
     returnStatus = "";
     clearInterval(poller);
@@ -208,7 +270,6 @@ function pollJobStatus(
     if (xhr.status == 200 && xhr.readyState == 4) {
       var jobStatus = xhr.responseText;
       jobStatus = JSON.parse(jobStatus);
-      console.log(jobStatus);
       returnStatus = jobStatus["status"];
       SetProgressValue(jobStatus["progress"]);
       SetCurrentImage(jobStatus["current_image"]);
@@ -248,6 +309,9 @@ function App() {
   const [ProgressImage, SetProgressImage] = useState(0);
   const [TotalImage, SetTotalImage] = useState(0);
   const [CurrentImage, SetCurrentImage] = useState(0);
+  const [folderChain, SetFolderChain] = useState([{ id: '/', name: 'Home', isDir: true, openable:true},]);
+  var [curDirPath, SetCurDirPath] = useState("");
+
 
   function MessageBox(props) {
     return (
@@ -283,52 +347,86 @@ function App() {
     getToken()
       .then((token) => {
         if (token != null) {
-          console.log("first run");
           token = token;
-        }
+        };
+      // set url to localhost:3000
+
       })
       .then(() => {
-        console.log("token", token);
         ListBucketFiles(
           setFiles,
           "space-for-testing-the-nutil-web-applicat",
-          ""
+          curDirPath
         );
       })
       .catch((err) => {
-        console.log("failed");
       });
   }, []);
 
+
+
+
+
+
+
+
+  function createFileChain(targetFilePath) {
+    var FileChain = [{ id: '/', name: 'Home', isDir: true, openable:true},];
+    targetFilePath = targetFilePath.replace(/\/$/, "");
+    for (var i = 0; i < targetFilePath.length  ; i++) {
+      var temp = {
+        // id should be a join of the array up to the current index
+        id : targetFilePath.split("/").slice(0, i + 1).join("/"),
+        name : targetFilePath.split("/")[i],
+        isDir : true,
+        openable : true,
+    }
+    FileChain[i+1] = temp;
+    }
+    return FileChain;
+    
+  }
+
+  function updateCurDirPath(curDirPath) {
+    if (!curDirPath.endsWith("/")) {
+      curDirPath = curDirPath + "/";
+    }
+    if (curDirPath == "/")
+    {
+      curDirPath = "";
+    }
+    SetCurDirPath(curDirPath);
+  }
+
+
+
+
+
   function FileActionHandler(data) {
     // open a file picker UI
-    // console.log('data', data);
     if (data.id == "open_files" && data.payload.targetFile.isDir) {
-      console.log("open files");
       var targetFile = data.payload.targetFile;
+      var targetFileChain = createFileChain(targetFile.id);
+
+      SetFolderChain(targetFileChain);
+
+      curDirPath= targetFile.id;
+
+      updateCurDirPath(curDirPath);
+
+
       ListBucketFiles(
         setFiles,
         "space-for-testing-the-nutil-web-applicat",
-        targetFile.name
+        curDirPath
       );
     }
+  
     if (data.id == "upload_files") {
-      // var xhr = new XMLHttpRequest();
-      // xhr.open('GET', `https://localhost:3000/jobStatus?jobID=${jobID}` , true);
-      // xhr.send();
-      // xhr.onreadystatechange = function () {
-      //   if (xhr.status == 200 && xhr.readyState == 4) {
-      //     console.log('status 200')
-      //     var jobStatus = xhr.responseText;
-      //     jobStatus = JSON.parse(jobStatus);
-      //     console.log('jobStatus', jobStatus);
-      //     SetMessage(jobStatus['status'])
-      //   }
-      // }
-      // SetMessage('Uploading Files');
-      // console.log('token', token);
-      // ListBucketFiles(setFiles);
-      // ListBucketFiles();
+      // open
+
+      UploadFiles(curDirPath, setFiles);
+    
     }
     if (data.id == "GenerateBrain") {
       var selectedFiles = null;
@@ -341,8 +439,7 @@ function App() {
             selectedFiles + "," + data.state.selectedFilesForAction[i].name;
         }
       }
-      console.log(data);
-      console.log("selectedFiles", selectedFiles);
+
       var bucket_name = "space-for-testing-the-nutil-web-applicat";
 
       // request to generate brain
@@ -357,9 +454,7 @@ function App() {
       xhr.send();
       xhr.onreadystatechange = function () {
         if (xhr.status == 200 && xhr.readyState == 4) {
-          console.log("status", xhr.status);
           jobID = xhr.responseText;
-          console.log("jobID numero", jobID);
           pollUntilDone(
             jobID,
             SetMessage,
@@ -369,7 +464,6 @@ function App() {
             SetProgressImage
           );
         }
-
         // server will respond first to confirm that the file has been uploaded with a 1xx status code
       };
       // poll job status every 5 seconds
@@ -379,7 +473,6 @@ function App() {
     }
   }
 
-  const folderChain = [{ id: "xcv", name: "Demo", isDir: true }];
   return (
     <div style={{ height: "70vh" }}>
       <input
@@ -387,6 +480,9 @@ function App() {
         style={{ display: "none" }}
         id="fileUpload"
         multiple="true"
+ 
+        // accept directory
+
       />
       <FileBrowser
         disableDefaultFileActions={true}
@@ -394,8 +490,11 @@ function App() {
         files={files}
         defaultFileViewActionId={ChonkyActions.EnableListView.id}
         fileActions={myFileActions}
+        folderChain={folderChain}
         iconComponent={MyEmojiIcon}
       >
+        <FileNavbar />
+
         <FileToolbar />
         <FileList />
         {/* <FileContextMenu /> */}

@@ -41,7 +41,7 @@ app.get("/", function (req, res) {
 app.get("/app", function (req, res) {
   var code = req.query.code;
   get_token(code, res);
-  // redirect to localhost:3000 on the browser
+  // redirect to destination from env file
   res.redirect("https://localhost:3000");
 });
 
@@ -96,7 +96,8 @@ app.use(express.static(path.join(__dirname, "public")));
 function list_bucket_files(res, bucketname, folderName, token) {
   console.log("bucketname", bucketname);
   console.log("folderName", folderName);
-  requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}&prefix=${folderName}&limit=50&delimiter=/`;
+  console.log("token", token)
+  requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}?prefix=${folderName}&limit=50&delimiter=/`;
   console.log("requestURl", requestURl);
   axios
     .get(requestURl, {
@@ -107,7 +108,7 @@ function list_bucket_files(res, bucketname, folderName, token) {
     })
     .then(function (response) {
       // set response status to 200
-
+      console.log(response);
       res.status(response.status);
       // encode response data to json
 
@@ -115,6 +116,7 @@ function list_bucket_files(res, bucketname, folderName, token) {
       res.send(data);
     })
     .catch(function (error) {
+      console.log(error);
       res.status(error.response.status);
       res.send(error.response.data);
     });
