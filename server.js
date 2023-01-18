@@ -36,16 +36,27 @@ app.get("/auth/", (req, res) => {
 // serve index.html
 app.get("/", function (req, res) {
   // redirect to localhost:8080 on the browser
+  if (process.env.NODE_ENV === "production") {
+    res.sendFile(path.join(__dirname + "/index_prod.html"));
+  }
+  else {
+    res.sendFile(path.join(__dirname + "/index_dev.html"));
+  }
 
-  res.sendFile(path.join(__dirname + "/index.html"));
 });
 
 app.get("/app", function (req, res) {
-  // var code = req.query.code;
-  // get_token(code, res);
-  // // redirect to the build index.html
-  // console.log(path.join(__dirname, "public", "index.html"))
-  res.sendFile(path.join(__dirname, "build", "index.html"));
+  console.log(process.env.NODE_ENV)
+  console.log("app")
+  // console.log("req", req)
+  if (process.env.NODE_ENV === "production") {
+    res.sendFile(path.join(__dirname, "build", "index.html"));
+  } else {
+    // redirect to localhost:8080 on the browser
+    // get_token(req.query.code, res);
+    // attach the query parameters to the url
+    res.redirect("https://localhost:8080" + req.url);
+  }
 });
 
 app.get("/listBucket", function (req, res) {
@@ -101,7 +112,7 @@ function list_bucket_files(res, bucketname, folderName, token) {
   console.log("folderName", folderName);
   console.log("token", token)
   requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}?prefix=${folderName}&limit=50&delimiter=/`;
-  console.log("requestURl", requestURl);
+  // console.log("requestURl", requestURl);
   axios
     .get(requestURl, {
       headers: {
@@ -169,6 +180,9 @@ var RunningJobs = {};
 function initJob(total_images) {
   // generate job id
   var jobID = uuidv4();
+  // create a job folder within the runningJobs folder
+
+
   // add job to running jobs
   RunningJobs[jobID] = {
     current_image: 0,
@@ -209,8 +223,8 @@ function GetDownloadLink(bucketName, file_name, token) {
   });
 }
 
-function curlFromBucket(target_url, file_name) {
-  var cmd = `curl "${target_url}" -o "${file_name}"`;
+function curlFromBucket(target_url, file_name, jobID) {
+  var cmd = `curl "${target_url}" -o "runningJobs/${jobID}/${file_name}"`;
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 function DownloadFromBucket(bucketName, file_name, token, jobID) {
@@ -219,21 +233,22 @@ function DownloadFromBucket(bucketName, file_name, token, jobID) {
   return GetDownloadLink(bucketName, file_name, token).then(function (
     response
   ) {
-    return curlFromBucket(response.data.url, file_name);
+    return curlFromBucket(response.data.url, file_name, jobID);
   });
 }
 
 function createPyramid(file_name, jobID) {
   updateJob(jobID, "Converting to DZI", 30);
   console.log("Converting to DZI");
-  var cmd = `java -jar pyramidio/pyramidio-cli-1.1.4.jar -i ${file_name} -icr 0.1 -tf jpg  -o . & `;
+  var cmd = `java -jar pyramidio/pyramidio-cli-1.1.4.jar -i runningJobs/${jobID}/${file_name} -icr 0.1 -tf jpg  -o  runningJobs/${jobID}/ & `;
+  console.log("cmd", cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 function tarDZI(file_name, jobID) {
   updateJob(jobID, "Converting to tar", 70);
   console.log("Converting to tar");
   dzi_folder = file_name.split(".")[0] + "_files";
-  var cmd = `tar -cf ${dzi_folder}.tar ${dzi_folder}`;
+  var cmd = `tar -cf runningJobs/${jobID}/${dzi_folder}.tar runningJobs/${jobID}/${dzi_folder}`;
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 
@@ -243,7 +258,7 @@ function indexTar(file_name, jobID) {
   stripped_file_name = file_name.split(".")[0];
   tar_name = stripped_file_name + "_files.tar";
   index_name = stripped_file_name + ".index";
-  cmd = `python tarindexer.py -i ${tar_name} ${index_name}`;
+  cmd = `python tarindexer.py -i runningJobs/${jobID}/${tar_name} runningJobs/${jobID}/${index_name}`;
 
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
@@ -263,15 +278,16 @@ function getUploadLink(bucketName, file_name, token) {
   );
 }
 
-function curlToBucket(target_url, file_name) {
-  var cmd = `curl -X PUT -T ${file_name} "${target_url}"`;
+function curlToBucket(target_url, file_name, jobID) {
+  // save output to runningJobs folder
+  var cmd = `curl -X PUT -T runningJobs/${jobID}/${file_name} "${target_url}"`;
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 
-function uploadToBucket(bucketName, file_name, token) {
+function uploadToBucket(bucketName, file_name, token, jobID) {
   console.log("uploading to bucket");
   return getUploadLink(bucketName, file_name, token).then(function (response) {
-    return curlToBucket(response.data.url, file_name);
+    return curlToBucket(response.data.url, file_name, jobID);
   });
 }
 
@@ -279,10 +295,19 @@ function uploadListToBucket(bucketName, file_list, token, jobID) {
   updateJob(jobID, "Uploading to bucket", 80);
   return Promise.all(
     file_list.map(function (file_name) {
-      return uploadToBucket(bucketName, file_name, token);
+      return uploadToBucket(bucketName, file_name, token, jobID);
     })
   );
 }
+
+function createJobDir(jobID) {
+  // check if job folder exists
+  if (!fs.existsSync(`runningJobs/${jobID}`)) {
+    fs.mkdirSync(`runningJobs/${jobID}`);
+  }
+}
+
+
 
 function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
   return new Promise(function (resolve, reject) {
@@ -315,6 +340,7 @@ async function convert_list_of_tiffs_to_tarDZI(
 ) {
   file_list_length = file_list.length;
   var jobID = initJob((total_images = file_list_length));
+  createJobDir(jobID);
   res.send(jobID);
 
   // loop through list of files and after the previous promise is resolved, start the next one
@@ -389,7 +415,7 @@ function get_token(code, res) {
     })
     .catch((error) => {
       // ;
-      console.log(error)
+      // console.log(error)
       res.status(error.response.status);
       res.send(error);
     });

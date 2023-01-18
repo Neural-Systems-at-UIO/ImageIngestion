@@ -17,6 +17,7 @@
     "https-localhost": "^4.7.1",
     "node-fetch": "^3.3.0",
     "nodemon": "^2.0.20",
+    "os": "^0.1.2",
     "path": "^0.12.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -26,7 +27,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "PORT=8080 HTTPS=true  react-scripts start ",
+    "dev": "concurrently \"NODE_ENV=development nodemon server.js\" \"PORT=8080 HTTPS=true  react-scripts start \"",
+    "start": "NODE_ENV=production nodemon server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -50,5 +52,8 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "concurrently": "^7.6.0"
   }
 }

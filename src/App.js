@@ -18,7 +18,7 @@ import { defineFileAction, FileData } from "chonky";
 
 import { Nullable } from "tsdef";
 // set cors to allow all
-
+// require
 var token = null;
 
 const SortFilesBySize = defineFileAction({
@@ -51,20 +51,89 @@ export const MyEmojiIcon = React.memo((props) => {
 });
 
 function getToken() {
+  console.log('getting token')
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    console.log('xhr')
     const urlParams = new URLSearchParams(window.location.search);
+    console.log('here')
     const code = urlParams.get("code");
- 
-    xhr.open("GET", "https://localhost:3000/auth?code=" + code, true);
+    console.log('code', code)
+    // clear url
+    window.history.pushState({}, document.title, "/" );
+    console.log(process.env)
+    xhr.open("GET", `${process.env.REACT_APP_SERVER}/auth?code=${code}`, true);
+    console.log(`${process.env.REACT_APP_SERVER}/auth?code=${code}`)
     xhr.send();
     xhr.onreadystatechange = function () {
       if (xhr.status == 200 && xhr.readyState == 4) {
         token = xhr.responseText;
+        console.log('token', token)
         resolve(token);
       }
     };
   });
+}
+
+function DownloadFiles(fileActionDispatch) {
+  console.log(fileActionDispatch)
+  var selectedFiles = fileActionDispatch.state.selectedFilesForAction;
+  console.log(selectedFiles)
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const file = selectedFiles[i];
+    const xhr = new XMLHttpRequest();
+    // get request to download file
+    xhr.open("GET", `https://data-proxy.ebrains.eu/api/v1/buckets/space-for-testing-the-nutil-web-applicat/${file.id}?redirect=false`, true);
+    console.log(`https://data-proxy.ebrains.eu/api/v1/buckets/space-for-testing-the-nutil-web-applicat/${file.id}`)
+    xhr.setRequestHeader("Authorization", "Bearer " + token);
+    xhr.setRequestHeader("x-amz-date", new Date().toUTCString());
+    // log request
+    console.log(xhr);
+    xhr.send();
+    xhr.onreadystatechange = function () {
+      if (xhr.status == 200 && xhr.readyState == 4) {
+        // return file as blob
+        // create a link to download the file
+        var link = document.createElement("a");
+        // parse response
+        var url = JSON.parse(xhr.responseText)
+      
+        link.href = url.url;
+        link.download = file.name;
+        link.click();
+      }
+    };
+  }
+}
+
+function DeleteFiles(fileActionDispatch,curDirPath, setFiles) {
+  var selectedFiles = fileActionDispatch.state.selectedFilesForAction;
+  for (let i = 0; i < selectedFiles.length; i++) {
+    const file = selectedFiles[i];
+    const xhr = new XMLHttpRequest();
+    // delete request to delete file
+    xhr.open("DELETE", `https://data-proxy.ebrains.eu/api/v1/buckets/space-for-testing-the-nutil-web-applicat/${file.id}`, true);
+    xhr.setRequestHeader("Authorization", "Bearer " + token);
+    xhr.setRequestHeader("x-amz-date", new Date().toUTCString());
+    xhr.send();
+    xhr.onreadystatechange = function () {
+      if (xhr.status == 200 && xhr.readyState == 4) {
+        // log success
+        console.log('success')
+
+        ListBucketFiles(
+          setFiles,
+          "space-for-testing-the-nutil-web-applicat",
+          curDirPath
+        );
+      } else {
+        // log error
+        console.log(xhr.status)
+        console.log('error')
+        
+      }
+    }
+  }
 }
 
 function UploadFiles(curDirPath, setFiles) {
@@ -106,6 +175,7 @@ function UploadFiles(curDirPath, setFiles) {
             if (xhr2.status == 201 && xhr2.readyState == 4) {
               // log success
               console.log('success')
+
               ListBucketFiles(
                 setFiles,
                 "space-for-testing-the-nutil-web-applicat",
@@ -179,12 +249,14 @@ function getNewFile(file, accepted_types) {
     isDir: isDir,
     modDate: file.last_modified,
     size: file.bytes,
+    
   };
 
   return newFile;
 }
 
 function ListBucketFiles(setFiles, bucket_name, folder_name) {
+  
   const xhr = new XMLHttpRequest();
   // var bucket_name = "space-for-testing-the-nutil-web-applicat";
   xhr.open(
@@ -413,8 +485,12 @@ function App() {
       SetFolderChain(targetFileChain);
 
       curDirPath= targetFile.id;
-
+      if (curDirPath == "/")
+      {
+        curDirPath = "";
+      }
       updateCurDirPath(curDirPath);
+      console.log('curDirPath', curDirPath)
 
 
       ListBucketFiles(
@@ -429,6 +505,12 @@ function App() {
 
       UploadFiles(curDirPath, setFiles);
     
+    }
+    if (data.id == "download_files") {
+      DownloadFiles(data);
+    }
+    if (data.id == "delete_files") {
+      DeleteFiles(data, curDirPath, setFiles);
     }
     if (data.id == "GenerateBrain") {
       var selectedFiles = null;
