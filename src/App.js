@@ -66,7 +66,7 @@ function getToken() {
     } else {
       var redirect_uri = process.env.REACT_APP_PROD_URL;
     }
-    xhr.open("GET", `${redirect_uri}/auth?code=${code}`, true);
+    xhr.open("GET", `auth?code=${code}`, true);
     console.log(`${redirect_uri}/auth?code=${code}`)
     xhr.send();
     xhr.onreadystatechange = function () {
