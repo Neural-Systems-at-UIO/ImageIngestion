@@ -37,9 +37,9 @@ app.get("/auth/", (req, res) => {
 app.get("/", function (req, res) {
   // redirect to localhost:8080 on the browser
   if (process.env.NODE_ENV === "production") {
-    res.sendFile(path.join(__dirname + "/index_prod.html"));
+    res.sendFile(path.join(__dirname + "/index_dev.html"));
   }
-  else {
+  else if (process.env.NODE_ENV === "development"){
     res.sendFile(path.join(__dirname + "/index_dev.html"));
   }
 
