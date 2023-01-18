@@ -389,10 +389,10 @@ function get_token(code, res) {
     "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect/token";
   //
   if (process.env.NODE_ENV === "production") {
-    target_url = process.env.PROD_URL;
+    target_url = process.env.REACT_APP_PROD_URL;
   }
   else if (process.env.NODE_ENV === "development") {
-    target_url = process.env.DEV_URL;
+    target_url = process.env.REACT_APP_DEV_URL;
   }
   const params = new URLSearchParams({
     grant_type: "authorization_code",

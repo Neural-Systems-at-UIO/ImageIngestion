@@ -62,9 +62,9 @@ function getToken() {
     // clear url
     window.history.pushState({}, document.title, "/" );
     if (process.env.NODE_ENV === "development") {
-      var redirect_uri = process.env.DEV_URL;
+      var redirect_uri = process.env.REACT_APP_DEV_URL;
     } else {
-      var redirect_uri = process.env.PROD_URL;
+      var redirect_uri = process.env.REACT_APP_PROD_URL;
     }
     xhr.open("GET", `${redirect_uri}/auth?code=${code}`, true);
     console.log(`${redirect_uri}/auth?code=${code}`)
@@ -264,9 +264,9 @@ function ListBucketFiles(setFiles, bucket_name, folder_name) {
   const xhr = new XMLHttpRequest();
   // var bucket_name = "space-for-testing-the-nutil-web-applicat";
   if (process.env.NODE_ENV === "development") {
-    var target_url = process.env.DEV_URL;
+    var target_url = process.env.REACT_APP_DEV_URL;
   } else {
-    var target_url = process.env.PROD_URL;
+    var target_url = process.env.REACT_APP_PROD_URL;
   }
   xhr.open(
     "GET",
@@ -538,9 +538,9 @@ function App() {
       // request to generate brain
       var xhr = new XMLHttpRequest();
       if (process.env.NODE_ENV === "development") {
-        var target_url = process.env.DEV_URL;
+        var target_url = process.env.REACT_APP_DEV_URL;
       } else {
-        var target_url = process.env.PROD_URL;
+        var target_url = process.env.REACT_APP_PROD_URL;
       }
       xhr.open(
         "GET",
