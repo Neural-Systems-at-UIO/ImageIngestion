@@ -34,13 +34,7 @@
     "eject": "react-scripts eject",
     "debug": "react-scripts start"
   },
-  "eslintConfig": {
-    "ignorePatterns": [
-      "src/*",
-      "!src/*",
-      "*"
-    ]
-  },
+
   "browserslist": {
     "production": [
       ">0.2%",
