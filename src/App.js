@@ -62,9 +62,9 @@ function getToken() {
     // clear url
     window.history.pushState({}, document.title, "/" );
     if (process.env.NODE_ENV === "development") {
-      var redirect_uri = "http://localhost:3000";
+      var redirect_uri = process.env.DEV_URL;
     } else {
-      var redirect_uri = "tif-dzi-tar-svc-test.apps.hbp.eu/";
+      var redirect_uri = process.env.PROD_URL;
     }
     xhr.open("GET", `${redirect_uri}/auth?code=${code}`, true);
     console.log(`${redirect_uri}/auth?code=${code}`)
@@ -263,9 +263,14 @@ function ListBucketFiles(setFiles, bucket_name, folder_name) {
   
   const xhr = new XMLHttpRequest();
   // var bucket_name = "space-for-testing-the-nutil-web-applicat";
+  if (process.env.NODE_ENV === "development") {
+    var target_url = process.env.DEV_URL;
+  } else {
+    var target_url = process.env.PROD_URL;
+  }
   xhr.open(
     "GET",
-    `https://localhost:3000/listBucket?bucketName=${bucket_name}&folderName=${folder_name}`,
+    `${target_url}/listBucket?bucketName=${bucket_name}&folderName=${folder_name}`,
     true
   );
 
@@ -532,9 +537,14 @@ function App() {
 
       // request to generate brain
       var xhr = new XMLHttpRequest();
+      if (process.env.NODE_ENV === "development") {
+        var target_url = process.env.DEV_URL;
+      } else {
+        var target_url = process.env.PROD_URL;
+      }
       xhr.open(
         "GET",
-        `https://localhost:3000/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}`,
+        `${target_url}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}`,
         true
       );
       // set token to header
