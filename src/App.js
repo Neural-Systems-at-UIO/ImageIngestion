@@ -61,9 +61,13 @@ function getToken() {
     console.log('code', code)
     // clear url
     window.history.pushState({}, document.title, "/" );
-    console.log(process.env)
-    xhr.open("GET", `${process.env.REACT_APP_SERVER}/auth?code=${code}`, true);
-    console.log(`${process.env.REACT_APP_SERVER}/auth?code=${code}`)
+    if (process.env.NODE_ENV === "development") {
+      var redirect_uri = "http://localhost:3000";
+    } else {
+      var redirect_uri = "tif-dzi-tar-svc-test.apps.hbp.eu/";
+    }
+    xhr.open("GET", `${redirect_uri}/auth?code=${code}`, true);
+    console.log(`${redirect_uri}/auth?code=${code}`)
     xhr.send();
     xhr.onreadystatechange = function () {
       if (xhr.status == 200 && xhr.readyState == 4) {

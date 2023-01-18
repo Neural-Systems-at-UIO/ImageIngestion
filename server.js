@@ -388,13 +388,18 @@ function get_token(code, res) {
   var target_url =
     "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect/token";
   //
-
+  if (process.env.NODE_ENV === "production") {
+    target_url = process.env.PROD_URL;
+  }
+  else if (process.env.NODE_ENV === "development") {
+    target_url = process.env.DEV_URL;
+  }
   const params = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: "LocalDevelopmentServer",
     code: code,
     client_secret: process.env.CLIENT_SECRET,
-    redirect_uri: `${process.env.URL}/app`,
+    redirect_uri: `${target_url}/app`,
   });
   console.log(params.toString())
   // make POST request to get token
