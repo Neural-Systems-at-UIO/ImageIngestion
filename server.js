@@ -396,7 +396,7 @@ function get_token(code, res) {
   }
   const params = new URLSearchParams({
     grant_type: "authorization_code",
-    client_id: "LocalDevelopmentServer",
+    client_id: process.env.CLIENT_ID,
     code: code,
     client_secret: process.env.CLIENT_SECRET,
     redirect_uri: `${target_url}/app`,
