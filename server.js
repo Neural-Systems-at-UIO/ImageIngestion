@@ -423,8 +423,8 @@ function get_token(code, res) {
     })
     .catch((error) => {
       // ;
-      // console.log(error)
-      res.status(error.response.status);
+      console.log(error)
+      // res.status(error.response.status);
       res.send(error);
     });
 }
