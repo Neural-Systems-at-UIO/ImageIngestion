@@ -51,10 +51,12 @@ app.get("/app", function (req, res) {
   console.log("app")
   // console.log("req", req)
   if (process.env.NODE_ENV === "production") {
+    console.log('serving build')
     res.sendFile(path.join(__dirname, "build", "index.html"));
   } else {
     // redirect to localhost:8080 on the browser
     // get_token(req.query.code, res);
+    console.log("redirecting to localhost:8080" )
     // attach the query parameters to the url
     res.redirect("https://localhost:8080" + req.url);
   }
