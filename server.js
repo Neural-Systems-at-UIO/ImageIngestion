@@ -7,7 +7,7 @@ const fetch = (...args) =>
 
 var express = require("express");
 const path = require("path");
-axios = require("axios");
+const axios = require("axios");
 const app = require("https-localhost")();
 const uuidv4 = require("uuid").v4;
 require("dotenv").config();
