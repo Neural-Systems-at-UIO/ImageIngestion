@@ -339,7 +339,13 @@ function pollJobStatus(
   SetProgressImage
 ) {
   var xhr = new XMLHttpRequest();
-  xhr.open("GET", `https://localhost:3000/jobStatus?jobID=` + jobID, true);
+  if (process.env.NODE_ENV === "development") {
+    var target_url = process.env.REACT_APP_DEV_URL;
+  }
+  else {
+    var target_url = process.env.REACT_APP_PROD_URL;
+  }
+  xhr.open("GET", `${target_url}/jobStatus?jobID=` + jobID, true);
   // add query string
   if (returnStatus == "Done") {
     returnStatus = "";
