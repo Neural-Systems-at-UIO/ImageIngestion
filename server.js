@@ -52,6 +52,8 @@ app.get("/app", function (req, res) {
   // console.log("req", req)
   if (process.env.NODE_ENV === "production") {
     console.log('serving build')
+    console.log(req.url)
+    // edit the current url without redirect
     res.sendFile(path.join(__dirname, "build", "index.html"));
   } else {
     // redirect to localhost:8080 on the browser
@@ -243,7 +245,7 @@ function DownloadFromBucket(bucketName, file_name, token, jobID) {
 function createPyramid(file_name, jobID) {
   updateJob(jobID, "Converting to DZI", 30);
   console.log("Converting to DZI");
-  var cmd = `java -jar pyramidio/pyramidio-cli-1.1.4.jar -i runningJobs/${jobID}/${file_name} -icr 0.1 -tf jpg  -o  runningJobs/${jobID}/ & `;
+  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.4.jar -i runningJobs/${jobID}/${file_name} -icr 0.1 -tf jpg  -o  runningJobs/${jobID}/ & `;
   console.log("cmd", cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
@@ -389,17 +391,17 @@ function get_token(code, res) {
     "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect/token";
   //
   if (process.env.NODE_ENV === "production") {
-    target_url = process.env.REACT_APP_PROD_URL;
+    redirect_uri = process.env.REACT_APP_PROD_URL;
   }
   else if (process.env.NODE_ENV === "development") {
-    target_url = process.env.REACT_APP_DEV_URL;
+    redirect_uri = process.env.REACT_APP_DEV_URL;
   }
   const params = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: process.env.CLIENT_ID,
     code: code,
     client_secret: process.env.CLIENT_SECRET,
-    redirect_uri: `${target_url}/app`,
+    redirect_uri: `${redirect_uri}/app`,
   });
   console.log(params.toString())
   // make POST request to get token
