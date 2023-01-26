@@ -192,7 +192,7 @@ function image_to_dzi(image) {
   var cmd =
     "java -jar pyramidio/pyramidio-cli-1.1.4.jar -i " +
     image +
-    " -icr 0.1 -tf jpg  -o . & ";
+    " -tf jpg  -o . & ";
 
   promise = exec(cmd, function (error, stdout, stderr) {});
   return promise;
