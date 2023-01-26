@@ -305,9 +305,27 @@ function GetDownloadLink(bucketName, file_name, token) {
 }
 
 function curlFromBucket(target_url, file_name, jobID) {
-  var cmd = `curl "${target_url}" -o "runningJobs/${jobID}/${file_name}"`;
+  // remove extension from file name
+  strip_file_name = file_name.split(".")[0];
+  // create folder for image in running jobs/jobId folder
+  var cmd = `curl "${target_url}" -o "runningJobs/${jobID}/${strip_file_name}/${file_name}"`;
   return exec(cmd, { maxBuffer: 1024 * 500 });
+  
 }
+
+
+function copyFileInBucket(bucket_name, file_name, new_file_name, token) {
+  requestURL = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file_name}/copy?name=${new_file_name}`;
+  requestHeaders = {
+    Authorization: token,
+    "Content-Type": "application/json",
+  };
+  console.log('t', requestURL)
+  return axios.put(requestURL, {}, {
+    headers: requestHeaders,
+  });
+}
+
 function DownloadFromBucket(bucketName, file_name, token, jobID) {
   updateJob(jobID, "Downloading file", 10);
   console.log("downloading file with token: " + token + "from bucket: " + bucketName + " and file: " + file_name + "")
@@ -320,8 +338,8 @@ function DownloadFromBucket(bucketName, file_name, token, jobID) {
 
 function createPyramid(file_name, jobID) {
   updateJob(jobID, "Converting to DZI", 30);
-  
-  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${file_name} -tf jpg  -o  runningJobs/${jobID}/ & `;
+  strip_file_name = file_name.split(".")[0];
+  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf jpg  -o  runningJobs/${jobID}/${strip_file_name}/ & `;
   
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
@@ -329,7 +347,9 @@ function tarDZI(file_name, jobID) {
   updateJob(jobID, "Converting to tar", 70);
   
   dzi_folder = file_name.split(".")[0] + "_files";
-  var cmd = `tar -cf runningJobs/${jobID}/${dzi_folder}.tar runningJobs/${jobID}/${dzi_folder}`;
+  strip_file_name = file_name.split(".")[0];
+
+  var cmd = `tar -cf runningJobs/${jobID}/${strip_file_name}/${dzi_folder}.tar runningJobs/${jobID}/${strip_file_name}/${dzi_folder}`;
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 
@@ -339,10 +359,22 @@ function indexTar(file_name, jobID) {
   stripped_file_name = file_name.split(".")[0];
   tar_name = stripped_file_name + "_files.tar";
   index_name = stripped_file_name + ".index";
-  cmd = `python tarindexer.py -i runningJobs/${jobID}/${tar_name} runningJobs/${jobID}/${index_name}`;
+  cmd = `python tarindexer.py -i runningJobs/${jobID}/${strip_file_name}/${tar_name} runningJobs/${jobID}/${strip_file_name}/${index_name}`;
 
   return exec(cmd, { maxBuffer: 1024 * 500 });
+
+
+
 }
+// function InitialiseBucketWorkFlowFolder(bucket_name, token) {
+//   var requestURL = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/.nesysWorkflowFiles`;
+//   var headers = {
+//     Authorization: token,
+//     "Content-Type": "application/json",
+//   };
+// }
+
+
 function getUploadLink(bucketName, file_name, token) {
   requestURL = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketName}/${file_name}`;
   var headers = {
@@ -359,9 +391,20 @@ function getUploadLink(bucketName, file_name, token) {
   );
 }
 
+
+// app.get("/getUploadLink", function (req, res) {
+//   var bucketName = req.query.bucketName;
+//   var file_name = req.query.file_name;
+//   var token = req.headers.authorization;
+//   getUploadLink(bucketName, file_name, token).then(function (response) {
+//     res.send(response.data);
+//   });
+// });
+  
 function curlToBucket(target_url, file_name, jobID) {
   // save output to runningJobs folder
-  var cmd = `curl -X PUT -T runningJobs/${jobID}/${file_name} "${target_url}"`;
+  strip_file_name = file_name.split(".")[0];
+  var cmd = `curl -X PUT -T runningJobs/${jobID}/${strip_file_name}/${file_name} "${target_url}"`;
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 
@@ -381,13 +424,32 @@ function uploadListToBucket(bucketName, file_list, token, jobID) {
   );
 }
 
-function createJobDir(jobID) {
+function createJobDir(jobID, file_list) {
   // check if job folder exists
   if (!fs.existsSync(`runningJobs/${jobID}`)) {
     fs.mkdirSync(`runningJobs/${jobID}`);
+    for (i in file_list) {
+      file = file_list[i];
+      var strip_file_name = file.split(".")[0];
+      fs.mkdirSync(`runningJobs/${jobID}/${strip_file_name}`);
+    }
   }
 }
 
+function zipDZI(filename, jobID) {
+  updateJob(jobID, "Zipping output", 70);
+  // use STORED method to avoid compression
+  var strip_file_name = filename.split(".")[0];
+  // only zip the dzi folder
+  var list_to_zip = [`${strip_file_name}_files`, `${strip_file_name}.dzi`];
+  // write multiline command which first changes directory to the folder to be zipped, then zips the folder and then changes back to the original directory
+  var cmd = `cd runningJobs/${jobID}/${strip_file_name} && zip -0 -r ${strip_file_name}.zip ${list_to_zip.join(" ")} && cd ../../..`;
+
+  // var cmd = `zip -0 -r runningJobs/${jobID}/${strip_file_name}/${strip_file_name}.zip runningJobs/${jobID}/${strip_file_name}`;
+  return exec(cmd, { maxBuffer: 1024 * 500 });
+}
+
+  // var cmd = `zip -0 -r runningJobs/${jobID}/${strip_file_name}/${strip_file_name}.zip runningJobs/${jobID}/${strip_file_name}`;
 
 
 function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
@@ -397,12 +459,14 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
     var dziFile = `${stripFileName}.dzi`;
     var dziFolder = `${stripFileName}_files`;
     var dziTar = `${dziFolder}.tar`;
-    var file_list = [indexFile, dziFile, dziTar];
+    var dziZip = `${stripFileName}.zip`;
+    var file_list = [dziZip];
+    var fileNameNoPath = fileName.split("/").pop();
     DownloadFromBucket(bucketName, fileName, token, jobID)
       .then(() => createPyramid(fileName, jobID))
-      .then(() => tarDZI(fileName, jobID))
-      .then(() => indexTar(fileName, jobID))
-      .then(() => uploadListToBucket(bucketName, file_list, token, jobID))
+      .then(() => zipDZI(fileName, jobID))
+      // .then(() => indexTar(fileName, jobID))
+      .then(() => uploadListToBucket(`${bucketName}/.nesysWorkflowFiles/zippedPyramids/${RunningJobs[jobID].brainID}/`, file_list, token, jobID))
       .then(() => updateJob(jobID, "Done", 100))
       .then(() => resolve())
       .catch((error) => {
@@ -411,6 +475,7 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
         console.log(error);
         reject(error);
       });
+      copyFileInBucket(bucketName, fileName,`.nesysWorkflowFiles/originalImages/${RunningJobs[jobID].brainID}/${fileNameNoPath}` , token)
   });
 }
 
@@ -423,7 +488,7 @@ async function convert_list_of_tiffs_to_tarDZI(
 ) {
   file_list_length = file_list.length;
   var jobID = initJob((total_images = file_list_length), bucketName, brainID);
-  createJobDir(jobID);
+  createJobDir(jobID, file_list);
   res.send(jobID);
 
   // loop through list of files and after the previous promise is resolved, start the next one
@@ -461,6 +526,10 @@ function iterate_over_bucket_files(bucketname, folder_name) {
     })
     .catch(function (error) {});
 }
+
+
+
+
 
 var token_ = null;
 

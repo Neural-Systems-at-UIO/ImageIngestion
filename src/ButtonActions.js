@@ -121,14 +121,69 @@ export function UploadFiles(curDirPath, setFiles, token) {
   });
 
 }
-function filterForImageAndSubdir(files) {
+function createFolder(folder, token) {
+  const xhr = new XMLHttpRequest();
+  // make a request to create a file
+  xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/space-for-testing-the-nutil-web-applicat/${folder}/`, true);
+  // add query strings
+  // set a Authorization header
+  xhr.setRequestHeader("Authorization", "Bearer " + token);
+  xhr.setRequestHeader("x-amz-date", new Date().toUTCString());
+  // send without body
+  xhr.send();
+  xhr.onreadystatechange = function () {
+    if (xhr.status == 200 && xhr.readyState == 4) {
+      var target_url = xhr.responseText;
+      // convert to json
+      target_url = JSON.parse(target_url);
+      target_url = target_url.url;
+      const xhr2 = new XMLHttpRequest();
+      xhr2.open("PUT", target_url, true);
+      xhr2.setRequestHeader("x-amz-date", new Date().toUTCString());
+
+      xhr2.send();
+      xhr2.onreadystatechange = function () {
+        console.log(xhr2.status)
+        if (xhr2.status == 201 && xhr2.readyState == 4) {
+          console.log('success')
+        } else {
+          // log error
+          console.log("error")
+        }
+      }
+    }
+
+  };
+
+}
+function filterForImageAndSubdir(files, token) {
   var newFiles = [];
   var accepted_types = ["tif", "tiff", "jpg", "jpeg", "png"];
+  console.log(files)
+  var workFlowDotFilePresent = false;
   for (let i = 0; i < files.length; i++) {
+    if (files[i].name == ".nesysWorkflowFiles") {
+      workFlowDotFilePresent = false;
+      // console.log(files[i])
+    }
     var newFile = getNewFile(files[i], accepted_types);
     if (newFile != null) {
       newFiles.push(newFile);
     }
+  }
+  console.log("workflowDotFile", workFlowDotFilePresent)
+  if (!workFlowDotFilePresent) {
+    createFolder('.nesysWorkflowFiles', token);
+    createFolder('.nesysWorkflowFiles/originalImages', token);
+    createFolder('.nesysWorkflowFiles/zippedPyramids', token);
+    createFolder('.nesysWorkflowFiles/alignmentJsons', token);
+    createFolder('.nesysWorkflowFiles/ilastikOutputs', token);
+    createFolder('.nesysWorkflowFiles/pointClouds', token);
+    createFolder('.nesysWorkflowFiles/Quantification', token);
+
+
+
+
   }
   return newFiles;
 }
@@ -203,7 +258,7 @@ export function ListBucketFiles(setFiles, bucket_name, folder_name, token) {
       files = JSON.parse(files).objects;
 
       // iterate through files
-      var newFiles = filterForImageAndSubdir(files);
+      var newFiles = filterForImageAndSubdir(files, token);
       setFiles(newFiles);
       // return files;
     } else {
