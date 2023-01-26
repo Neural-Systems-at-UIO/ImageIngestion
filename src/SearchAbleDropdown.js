@@ -8,7 +8,13 @@ function getUser(token, setOptions) {
   return new Promise((resolve, reject) => {
     // make request to getUser
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", process.env.REACT_APP_DEV_URL + "/getuserroles", true);
+    if (process.env.NODE_ENV === "development") {
+      var target_url = process.env.REACT_APP_DEV_URL;
+    } else {
+      var target_url = process.env.REACT_APP_PROD_URL;
+    }
+    
+    xhr.open("GET", target_url+ "/getuserroles", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.setRequestHeader("Authorization", token);
     xhr.send();
