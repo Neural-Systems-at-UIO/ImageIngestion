@@ -321,7 +321,7 @@ function DownloadFromBucket(bucketName, file_name, token, jobID) {
 function createPyramid(file_name, jobID) {
   updateJob(jobID, "Converting to DZI", 30);
   
-  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.4.jar -i runningJobs/${jobID}/${file_name} -tf jpg  -o  runningJobs/${jobID}/ & `;
+  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${file_name} -tf jpg  -o  runningJobs/${jobID}/ & `;
   
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }

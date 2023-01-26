@@ -240,7 +240,11 @@ function createFileChain(targetFilePath) {
         );
       })
     }, [])  
-    
+    var button = document.querySelector('[title="Generate Brain from Files"]');
+    // make button invisible
+    if (button != null) {
+        button.style.display = "none";
+    }
     console.log('token: ', token)
     return (
         <div style = {{'height': '70vh'}}>
