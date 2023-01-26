@@ -8,6 +8,7 @@ const fetch = (...args) =>
 var express = require("express");
 const path = require("path");
 const axios = require("axios");
+const execSync = require("child_process").execSync;
 if (process.env.NODE_ENV === "development") {
   var app = require("https-localhost")();
 }
@@ -57,7 +58,7 @@ function GetUser(token) {
     requestURL = `https://core.kg.ebrains.eu/v3/users/me`;
     return axios.get(requestURL, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `${token}`,
         "Content-Type": "application/json",
         },
     })
@@ -479,6 +480,82 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
   });
 }
 
+function createJobMetadata(jobID, bucketName, brainID, file_list, token) {
+  console.log('getting user....')
+  GetUser(token).then(function (response) {
+    console.log(response.data)
+    var jobMetadata = {
+      jobID: jobID,
+      bucketName: bucketName,
+      brainID: brainID,
+      alternateName: response.data['http://schema.org/alternateName'],
+      email: response.data['http://schema.org/email'],
+      familyName: response.data['http://schema.org/familyName'],
+      givenName: response.data['http://schema.org/givenName'],
+      nativeID: response.data['http://schema.org/nativeID'],
+      creationTime: new Date().toISOString(),
+
+      file_list: {
+
+      }
+    };
+    
+  for (i in file_list) {
+    file = file_list[i];
+    // print the present working directory
+    jobMetadata.file_list[file] = {};
+}
+  RunningJobs[jobID]['jobMetadata'] = jobMetadata;
+  });
+}
+
+function updateJobMetadata(jobID, file_list, jobMetadata, token) {
+  for (i in file_list) {
+    file = file_list[i];
+    var cmd = `pwd`;
+    var pwd = execSync(cmd).toString().trim();
+    console.log('pwd is ' + pwd)
+    // get image resolution
+    var strip_file_name = file.split(".")[0];
+    // get image width, note that file could be .jpg .png .tif, etc
+    var cmd = `identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
+    var imageWidth = execSync(cmd).toString().trim();
+    // get image height
+    var cmd = `identify -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
+    var imageHeight = execSync(cmd).toString().trim();
+    // get file size
+    var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
+    var fileSize = execSync(cmd).toString().trim();
+    // get image extension
+    var imageExtension = file.split(".")[1];
+    for (i in file_list) {
+      file = file_list[i];
+      // print the present working directory
+      jobMetadata.file_list[file] = {
+        imageWidth: imageWidth,
+        imageHeight: imageHeight,
+        fileSize: fileSize,
+        imageExtension: imageExtension,
+      };
+  }
+  }
+  RunningJobs[jobID].jobMetadata = jobMetadata;
+  console.log('saving job metadata....')
+  console.log(RunningJobs[jobID].jobMetadata)
+  saveJobMetaData(jobID, token);
+
+}
+
+function saveJobMetaData(jobID, token) {
+  var jobMetadata = RunningJobs[jobID].jobMetadata;
+  var jobMetadataString = JSON.stringify(jobMetadata);
+  console.log('saving job metadata to file....')
+  var jobMetadataFile = `jobMetadata.json`;
+  // fs.writeFileSync(jobMetadataFile, jobMetadataString);
+  // // upload jobMetadata.json to bucket
+  // var target_bucket =  `${jobMetadata.bucketName}/.nesysWorkflowFiles/Metadata/${jobMetadata.brainID}/`
+  // uploadToBucket(target_bucket, jobMetadataFile, token, jobID);
+}
 async function convert_list_of_tiffs_to_tarDZI(
   bucketName,
   file_list,
@@ -490,13 +567,14 @@ async function convert_list_of_tiffs_to_tarDZI(
   var jobID = initJob((total_images = file_list_length), bucketName, brainID);
   createJobDir(jobID, file_list);
   res.send(jobID);
-
+  createJobMetadata(jobID, bucketName, brainID, file_list, token)
   // loop through list of files and after the previous promise is resolved, start the next one
   for (var i = 0; i < file_list_length; i++) {
     var file_name = file_list[i];
     await convert_tiff_to_tarDZI(bucketName, file_name, token, jobID);
     RunningJobs[jobID]["current_image"] = i + 1;
   }
+  updateJobMetadata(jobID, file_list, RunningJobs[jobID].jobMetadata, token)
 }
 
 function iterate_over_bucket_files(bucketname, folder_name) {

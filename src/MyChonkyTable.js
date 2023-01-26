@@ -5,6 +5,7 @@ import { setChonkyDefaults , ChonkyActions, defineFileAction,   FileBrowser,
 import { ChonkyIconFA } from "chonky-icon-fontawesome";
 import React, { useEffect, useState } from "react";
 import { ListBucketFiles, UploadFiles, DownloadFiles, DeleteFiles } from "./ButtonActions";
+// import a dropdown menu from antd
 
 
 setChonkyDefaults({ iconComponent: ChonkyIconFA });
@@ -16,8 +17,6 @@ const myEmojiMap = {
   japanEmoji: "🗾",
   brainEmoji: "🧠",
 };
-
-var token = null 
 
 export const MyEmojiIcon = React.memo((props) => {
   const emojiIcon = myEmojiMap[props.icon];
@@ -34,7 +33,7 @@ const CreateBrainFromFiles = defineFileAction({
     requiresSelection: false,
   
     button: {
-      name: "Generate Brain from Files",
+      name: " ",
       toolbar: true,
     },
   });
@@ -43,6 +42,8 @@ const CreateBrainFromFiles = defineFileAction({
 
 
   const myFileActions = [
+    CreateBrainFromFiles,
+
     ChonkyActions.CreateFolder,
     ChonkyActions.UploadFiles,
     ChonkyActions.DownloadFiles,
@@ -50,7 +51,6 @@ const CreateBrainFromFiles = defineFileAction({
     ChonkyActions.EnableListView,
     ChonkyActions.SelectAllFiles,
     ChonkyActions.ClearSelection,
-    CreateBrainFromFiles,
   ];
   
   const uploadFileAction = myFileActions.find(action => action.id === ChonkyActions.UploadFiles.id);
@@ -71,7 +71,7 @@ clearSelectionAction.button.toolbar = false;
 clearSelectionAction.hotkeys = ["esc"];
 clearSelectionAction.button.group = "";
 const CreateBrainFromFilesAction = myFileActions.find(action => action.id === CreateBrainFromFiles.id);
-CreateBrainFromFilesAction.button.icon = "brainEmoji";
+// CreateBrainFromFilesAction.button.icon = "brainEmoji";
 
 
 function updateCurDirPath(curDirPath, SetCurDirPath) {
@@ -124,7 +124,7 @@ function createFileChain(targetFilePath) {
 
       ListBucketFiles(
         setFiles,
-        "space-for-testing-the-nutil-web-applicat",
+        bucket_name,
         curDirPath,
         token
       );
@@ -133,17 +133,17 @@ function createFileChain(targetFilePath) {
     if (data.id == "upload_files") {
       // open
 
-      UploadFiles(curDirPath, setFiles, token);
+      UploadFiles(curDirPath, setFiles, bucket_name, token);
     
     }
     if (data.id == "create_folder") {
       AddToItems(setItems, items, 'test_new', 'Processing') 
     }
     if (data.id == "download_files") {
-      DownloadFiles(data, token);
+      DownloadFiles(data, bucket_name, token);
     }
     if (data.id == "delete_files") {
-      DeleteFiles(data, curDirPath, setFiles, token);
+      DeleteFiles(data, curDirPath, setFiles,bucket_name, token);
     }
     if (data.id == "GenerateBrain") {
       var selectedFiles = null;
@@ -158,10 +158,9 @@ function createFileChain(targetFilePath) {
       }
 
       // set bucket name
-      var bucket_name = "space-for-testing-the-nutil-web-applicat";
       // acquire brain ID from Input with ID brainID
       var brainID = document.getElementById("brainIDInput").value;
-
+      
       // request to generate brain
       var xhr = new XMLHttpRequest();
       if (process.env.NODE_ENV === "development") {
@@ -182,38 +181,7 @@ function createFileChain(targetFilePath) {
 
     }
   }
-  function getToken() {
-  
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      
-      const urlParams = new URLSearchParams(window.location.search);
-      
-      const code = urlParams.get("code");
-      
-      // clear url
-      window.history.pushState({}, document.title, "/" );
-      if (process.env.NODE_ENV === "development") {
-        var redirect_uri = process.env.REACT_APP_DEV_URL;
-        xhr.open("GET", `${redirect_uri}/auth?code=${code}`, true);
-      } else {
-        var redirect_uri = process.env.REACT_APP_PROD_URL;
-        xhr.open("GET", `auth?code=${code}`, true);
-  
-      }
-      
-      
-      xhr.send();
-      xhr.onreadystatechange = function () {
-        if (xhr.status == 200 && xhr.readyState == 4) {
-          token = xhr.responseText;
-          
-          resolve(token);
-        }
-  
-      };
-    });
-  }
+ 
 
   function MyChonkyTable(args) {
     var folderChain = args.folderChain;
@@ -222,25 +190,16 @@ function createFileChain(targetFilePath) {
     var SetCurDirPath = args.SetCurDirPath;
     var files = args.files;
     var setFiles = args.setFiles;
-    
+    var token = args.token;
+    console.log("token", token)
     function passToFileAction (SetFolderChain, curDirPath, SetCurDirPath,setFiles, token) {
         return function (data) {
             FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath,setFiles,token);
         }
     }
-    useEffect(() => {
-        getToken().then((token) => {
-        var token = token;
-        console.log('token2: ' + token)
-        ListBucketFiles(
-          setFiles,
-          "space-for-testing-the-nutil-web-applicat",
-          curDirPath,
-          token
-        );
-      })
-    }, [])  
-    var button = document.querySelector('[title="Generate Brain from Files"]');
+
+    var button = document.querySelector('[title=" "]');
+    console.log("button", button)
     // make button invisible
     if (button != null) {
         button.style.display = "none";
@@ -249,7 +208,7 @@ function createFileChain(targetFilePath) {
     return (
         <div style = {{'height': '70vh'}}>
         <input
-        type="file"
+        type="file"     
         style={{ display: "none" }}
         id="fileUpload"
         multiple="true"
@@ -257,6 +216,8 @@ function createFileChain(targetFilePath) {
         // accept directory
 
       />
+ 
+
       <FileBrowser
         disableDefaultFileActions={true}
         onFileAction={passToFileAction(SetFolderChain,curDirPath, SetCurDirPath,setFiles, token)}

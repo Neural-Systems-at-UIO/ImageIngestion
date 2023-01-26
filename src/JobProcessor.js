@@ -61,7 +61,7 @@ function getItem(label, key, icon, children, type) {
 function CreateBrain() {
     const click = () => {
       // get the button with title "Generate Brain from Files"
-      var button = document.querySelector('[title="Generate Brain from Files"]');
+      var button = document.querySelector('[title=" "]');
       ;
       console.log("clicking")
       button.click();
@@ -252,16 +252,17 @@ function AddToItems(setItems, items, item_name, itemID, state) {
     }
 
 
-function checkForRunningJobs(items, setItems) {
+function checkForRunningJobs(items, setItems, bucket_name) {
     var xhr = new XMLHttpRequest();
-    
+    // bucket_name = urlParams.get("clb-collab-id")
+    bucket_name = "deepslice"
     if (process.env.NODE_ENV === "development") {
       var target_url = process.env.REACT_APP_DEV_URL;
     }
     else {
       var target_url = process.env.REACT_APP_PROD_URL;
     }
-    xhr.open("GET", `${target_url}/checkForRunningJobs?bucketName=${'space-for-testing-the-nutil-web-applicat'}`, true);
+    xhr.open("GET", `${target_url}/checkForRunningJobs?bucketName=${bucket_name}`, true);
     xhr.send();
     
     xhr.onreadystatechange = function () {

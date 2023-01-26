@@ -28,9 +28,12 @@
     "util": "^0.12.5",
     "web-vitals": "^2.1.4"
   },
+  "nodemonConfig": {
+    "ignore": ["runningJobs/*"]
+  },
   "scripts": {
-    "dev": "(NODE_ENV=development nodemon server.js) & (PORT=8081 HTTPS=true  react-scripts start)",
-    "start": "NODE_ENV=production java='~/jdk-19.0.2/bin/java' nodemon --ignore runningJobs/* --experimental-modules server.js",
+    "dev": "(NODE_ENV=development nodemon --ignore 'runningJobs/*' server.js) & (PORT=8081 HTTPS=true  react-scripts start)",
+    "start": "NODE_ENV=production java='~/jdk-19.0.2/bin/java' nodemon --ignore 'runningJobs/*' --experimental-modules server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "postinstall": "./PostInstall.sh",

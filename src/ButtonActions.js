@@ -1,6 +1,6 @@
 // import { token } from "./App";
 
-export function DownloadFiles(fileActionDispatch, token) {
+export function DownloadFiles(fileActionDispatch, bucket_name, token) {
   
   var selectedFiles = fileActionDispatch.state.selectedFilesForAction;
   
@@ -8,7 +8,7 @@ export function DownloadFiles(fileActionDispatch, token) {
     const file = selectedFiles[i];
     const xhr = new XMLHttpRequest();
     // get request to download file
-    xhr.open("GET", `https://data-proxy.ebrains.eu/api/v1/buckets/space-for-testing-the-nutil-web-applicat/${file.id}?redirect=false`, true);
+    xhr.open("GET", `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file.id}?redirect=false`, true);
     
     xhr.setRequestHeader("Authorization", "Bearer " + token);
     xhr.setRequestHeader("x-amz-date", new Date().toUTCString());
@@ -30,13 +30,13 @@ export function DownloadFiles(fileActionDispatch, token) {
     };
   }
 }
-export function DeleteFiles(fileActionDispatch, curDirPath, setFiles, token) {
+export function DeleteFiles(fileActionDispatch, curDirPath, setFiles, bucket_name, token) {
   var selectedFiles = fileActionDispatch.state.selectedFilesForAction;
   for (let i = 0; i < selectedFiles.length; i++) {
     const file = selectedFiles[i];
     const xhr = new XMLHttpRequest();
     // delete request to delete file
-    xhr.open("DELETE", `https://data-proxy.ebrains.eu/api/v1/buckets/space-for-testing-the-nutil-web-applicat/${file.id}`, true);
+    xhr.open("DELETE", `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file.id}`, true);
     xhr.setRequestHeader("Authorization", "Bearer " + token);
     xhr.setRequestHeader("x-amz-date", new Date().toUTCString());
     xhr.send();
@@ -47,7 +47,7 @@ export function DeleteFiles(fileActionDispatch, curDirPath, setFiles, token) {
 
         ListBucketFiles(
           setFiles,
-          "space-for-testing-the-nutil-web-applicat",
+          bucket_name,
           curDirPath
         );
       } else {
@@ -59,7 +59,7 @@ export function DeleteFiles(fileActionDispatch, curDirPath, setFiles, token) {
     };
   }
 }
-export function UploadFiles(curDirPath, setFiles, token) {
+export function UploadFiles(curDirPath, setFiles,bucket_name, token) {
   const fileInput = document.getElementById("fileUpload");
   fileInput.click();
   fileInput.addEventListener("change", (e) => {
@@ -68,7 +68,7 @@ export function UploadFiles(curDirPath, setFiles, token) {
       const xhr = new XMLHttpRequest();
       
       // put request to upload file
-      xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/space-for-testing-the-nutil-web-applicat/${file.name}`, true);
+      xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file.name}`, true);
       // add query strings
       // set a uthorization header
       xhr.setRequestHeader("Authorization", "Bearer " + token);
@@ -101,7 +101,7 @@ export function UploadFiles(curDirPath, setFiles, token) {
 
               ListBucketFiles(
                 setFiles,
-                "space-for-testing-the-nutil-web-applicat",
+                bucket_name,
                 curDirPath
               );
             } else {
@@ -121,10 +121,10 @@ export function UploadFiles(curDirPath, setFiles, token) {
   });
 
 }
-function createFolder(folder, token) {
+function createFolder(folder, bucket_name, token) {
   const xhr = new XMLHttpRequest();
   // make a request to create a file
-  xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/space-for-testing-the-nutil-web-applicat/${folder}/`, true);
+  xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${folder}/`, true);
   // add query strings
   // set a Authorization header
   xhr.setRequestHeader("Authorization", "Bearer " + token);
@@ -156,7 +156,7 @@ function createFolder(folder, token) {
   };
 
 }
-function filterForImageAndSubdir(files, token) {
+function filterForImageAndSubdir(files, bucket_name, token) {
   var newFiles = [];
   var accepted_types = ["tif", "tiff", "jpg", "jpeg", "png"];
   console.log(files)
@@ -173,16 +173,14 @@ function filterForImageAndSubdir(files, token) {
   }
   console.log("workflowDotFile", workFlowDotFilePresent)
   if (!workFlowDotFilePresent) {
-    createFolder('.nesysWorkflowFiles', token);
-    createFolder('.nesysWorkflowFiles/originalImages', token);
-    createFolder('.nesysWorkflowFiles/zippedPyramids', token);
-    createFolder('.nesysWorkflowFiles/alignmentJsons', token);
-    createFolder('.nesysWorkflowFiles/ilastikOutputs', token);
-    createFolder('.nesysWorkflowFiles/pointClouds', token);
-    createFolder('.nesysWorkflowFiles/Quantification', token);
-
-
-
+    createFolder('.nesysWorkflowFiles', bucket_name, token);
+    createFolder('.nesysWorkflowFiles/originalImages', bucket_name, token);
+    createFolder('.nesysWorkflowFiles/zippedPyramids', bucket_name, token);
+    createFolder('.nesysWorkflowFiles/alignmentJsons', bucket_name, token);
+    createFolder('.nesysWorkflowFiles/ilastikOutputs',bucket_name,  token);
+    createFolder('.nesysWorkflowFiles/pointClouds', bucket_name, token);
+    createFolder('.nesysWorkflowFiles/Quantification', bucket_name, token);
+    createFolder('.nesysWorkflowFiles/Metadata', bucket_name, token);
 
   }
   return newFiles;
@@ -230,9 +228,8 @@ function getNewFile(file, accepted_types) {
   return newFile;
 }
 export function ListBucketFiles(setFiles, bucket_name, folder_name, token) {
-
+  console.log
   const xhr = new XMLHttpRequest();
-  // var bucket_name = "space-for-testing-the-nutil-web-applicat";
   if (process.env.NODE_ENV === "development") {
     var target_url = process.env.REACT_APP_DEV_URL;
   } else {
@@ -254,11 +251,10 @@ export function ListBucketFiles(setFiles, bucket_name, folder_name, token) {
     if (xhr.status == 200 && xhr.readyState == 4) {
       var files = xhr.responseText;
 
-
       files = JSON.parse(files).objects;
 
       // iterate through files
-      var newFiles = filterForImageAndSubdir(files, token);
+      var newFiles = filterForImageAndSubdir(files, bucket_name, token);
       setFiles(newFiles);
       // return files;
     } else {
