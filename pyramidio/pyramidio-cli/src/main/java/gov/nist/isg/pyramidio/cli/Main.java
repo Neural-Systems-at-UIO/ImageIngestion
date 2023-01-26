@@ -14,9 +14,12 @@ package gov.nist.isg.pyramidio.cli;
 import gov.nist.isg.archiver.FilesArchiver;
 //@darwinjob import gov.nist.isg.pyramidio.DirectImageReader;
 import gov.nist.isg.pyramidio.ScalablePyramidBuilder;
+import loci.formats.FormatException;
+import loci.formats.ImageReader;
 import no.uio.nesys.pyramidio.BioFormatsImageReader;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import org.apache.commons.cli.CommandLine;
@@ -126,7 +129,7 @@ public class Main {
                     = (Number) commandLine.getParsedOptionValue(
                             inputCacheRatioOption.getOpt());
             float cachePercentage = inputCacheRatioNumber == null
-                    ? 1
+                    ? getCalculatedPercentage(inputFile)
                     : inputCacheRatioNumber.floatValue();
 
             ScalablePyramidBuilder spb = new ScalablePyramidBuilder(
@@ -164,7 +167,61 @@ public class Main {
 
     }
 
-    private static void printHelp(Options options) {
+	private static float getCalculatedPercentage(File inputFile) {
+
+		try {
+			ImageReader imageReader = new ImageReader();
+			imageReader.setId(inputFile.getPath());
+
+			long width = imageReader.getSizeX();
+			long height = imageReader.getSizeY();
+			long bitsPerPixel = imageReader.getBitsPerPixel();
+			long channelCount = imageReader.getRGBChannelCount();
+
+			logger.info("Input image width: " + width + ", height: " + height + ", channel count: " + channelCount
+					+ ", bits per pixel: " + bitsPerPixel);
+			if (channelCount > 3)
+				logger.warning(
+						"Channel count > 3. Is alpha channel present? The output pyramid might be corrupted. See https://github.com/darwinjob/pyramidio-bioformats/issues/1");
+
+			long imageSize = width * height * bitsPerPixel * channelCount / 8; // bytes
+			logger.info("Uncompressed image size: " + imageSize / (1024 * 1024) + "MB");
+
+			logger.info("Number of processors: " + Runtime.getRuntime().availableProcessors());
+
+			// Get current size of heap in bytes
+			long heapSize = Runtime.getRuntime().totalMemory();
+			// Get maximum size of heap in bytes. The heap cannot grow beyond this size. Any
+			// attempt will result in an OutOfMemoryException.
+			long heapMaxSize = Runtime.getRuntime().maxMemory();
+			// Get amount of free memory within the heap in bytes. This size will increase
+			// after garbage collection and decrease as new objects are created.
+			long heapFreeSize = Runtime.getRuntime().freeMemory();
+
+			logger.info("Total memory: " + heapSize / (1024 * 1024) + "MB, max memory: " + heapMaxSize / (1024 * 1024)
+					+ "MB, free memory: " + heapFreeSize / (1024 * 1024) + "MB");
+
+			// TODO ATTN.!: Assuming taking this amount of the heap is safe. Wild guess.
+			float icr = (heapMaxSize / 5f) / imageSize;
+			logger.info("Calculated icr: " + icr);
+
+			if (icr > 1)
+				icr = 1;
+
+			logger.info("Actual icr: " + icr);
+
+			imageReader.close();
+			return icr;
+		} catch (FormatException | IOException e) {
+			logger.info(
+					"Failed to calculate icr (Input Cache Ratio). Setting icr to 1 (cache entire image). The exception:\n"
+							+ e);
+			return 1;
+		}
+
+	}
+
+	private static void printHelp(Options options) {
         new HelpFormatter().printHelp("pyramidio", options);
     }
 }

@@ -54,6 +54,8 @@ This will produce a pyramid with JPG (lossy) tiles.
 
 ## 🚨 Memory overflow issues 🚨 ##
 
+NOTE: Starting from the version 1.1.5, if you omit the icr parameter, the tool will try to "safely" guess it based on the input image dimensions and the heap size. 
+
 By default PyramidIO is trying to read and cache the entire image into the memory to achieve the best possible performance. In case of large images it might cause memory overflow issues. There are two types of them: `java.lang.OutOfMemoryError: Java heap space` and `java.lang.RuntimeException: Cannot cache region java.awt.Rectangle`
 Both are usually fixable by using `-icr` parameter:
 ```
