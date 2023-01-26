@@ -81,6 +81,59 @@ app.get("/getuser", function (req, res) {
   );
 
 });
+function GetUserRoles(token) {
+    requestURL = `https://core.kg.ebrains.eu/v3/users/me/roles`;
+    return axios.get(requestURL, {
+      headers: {
+        Authorization: `${token}`,
+        "Content-Type": "application/json",
+        },
+    })
+   
+
+}
+
+app.get("/getuserroles", function (req, res) {
+  // get token from header
+
+  var token = req.headers.authorization;
+  GetUserRoles(token).then(
+    function (result) {
+      console.log('recieved user roles')
+      var finalColabs = [];
+
+      var userRoles = result.data.data.userRoles;
+      // get the keys from the user roles
+      var keys = Object.keys(userRoles);
+      // console.log('---------------------------------------')
+      // console.log('keys', keys)
+      // console.log('---------------------------------------')
+
+      // console.log('userRoles', userRoles)
+      
+      for (var i = 0; i < userRoles.length; i++) {
+        var userRole = userRoles[i];
+        // split on :
+        var splitUserRole = userRole.split(":");
+        var collabName = splitUserRole[0];
+        var roleName = splitUserRole[1];
+        if (roleName == "owner") {
+          // split collab name on the first -
+          var splitCollabName = collabName.split("-");
+          var collabID = splitCollabName[0];
+          // join the rest of the collab name
+          var collabName = splitCollabName.slice(1).join("-");
+          if (collabID == "collab") {
+            finalColabs.push(collabName);
+          }
+        }
+      }
+      console.log('finalColabs', finalColabs)
+      res.send(finalColabs);
+
+    }
+  );
+  });
 app.get("/app", function (req, res) {
   
   

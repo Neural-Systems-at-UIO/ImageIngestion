@@ -105,7 +105,7 @@ function createFileChain(targetFilePath) {
 
 
 
-  function FileActionHandler(data, SetFolderChain,curDirPath, SetCurDirPath, setFiles, token) {
+  function FileActionHandler(data, SetFolderChain,curDirPath, SetCurDirPath, setFiles,bucket_name, token) {
     // open a file picker UI
     if (data.id == "open_files" && data.payload.targetFile.isDir) {
       var targetFile = data.payload.targetFile;
@@ -191,10 +191,11 @@ function createFileChain(targetFilePath) {
     var files = args.files;
     var setFiles = args.setFiles;
     var token = args.token;
+    var bucket_name = args.currentBucket;
     console.log("token", token)
-    function passToFileAction (SetFolderChain, curDirPath, SetCurDirPath,setFiles, token) {
+    function passToFileAction (SetFolderChain, curDirPath, SetCurDirPath,setFiles,bucket_name, token) {
         return function (data) {
-            FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath,setFiles,token);
+            FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath,setFiles,bucket_name, token);
         }
     }
 
@@ -220,7 +221,7 @@ function createFileChain(targetFilePath) {
 
       <FileBrowser
         disableDefaultFileActions={true}
-        onFileAction={passToFileAction(SetFolderChain,curDirPath, SetCurDirPath,setFiles, token)}
+        onFileAction={passToFileAction(SetFolderChain,curDirPath, SetCurDirPath,setFiles, bucket_name, token)}
         files={files}
         defaultFileViewActionId={ChonkyActions.EnableListView.id}
         fileActions={myFileActions}

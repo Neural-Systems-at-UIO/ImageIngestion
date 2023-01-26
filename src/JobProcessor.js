@@ -135,7 +135,8 @@ function CreateBrain() {
 
 var poller = null
 
-function JobProcessor() {
+function JobProcessor(props) {
+var bucket_name = props.currentBucket;
 var [items, setItems] = useState([
     getItem('Processing', 'sub1', '', [
       ]
@@ -183,12 +184,13 @@ useEffect(() => {
 
 
 useEffect(() => {
-    checkForRunningJobs(items, setItems);
+    checkForRunningJobs(items, setItems, bucket_name);
     setInterval(
       checkForRunningJobs,
       1000,
       items,
       setItems,
+      bucket_name
     );
   
   }, []);
@@ -255,7 +257,6 @@ function AddToItems(setItems, items, item_name, itemID, state) {
 function checkForRunningJobs(items, setItems, bucket_name) {
     var xhr = new XMLHttpRequest();
     // bucket_name = urlParams.get("clb-collab-id")
-    bucket_name = "deepslice"
     if (process.env.NODE_ENV === "development") {
       var target_url = process.env.REACT_APP_DEV_URL;
     }

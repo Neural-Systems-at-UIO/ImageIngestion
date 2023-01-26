@@ -12,7 +12,7 @@ function App() {
 
   const [folderChain, SetFolderChain] = useState([{ id: '/', name: 'Home', isDir: true, openable:true},]);
   var   [curDirPath, SetCurDirPath] = useState("");
-  const [currentBucket, SetCurrentBucket] = useState("deepslice");
+  const [currentBucket, SetCurrentBucket] = useState("space-for-testing-the-nutil-web-applicat");
   var [token, SetToken] = useState(null);
   const [files, setFiles] = useState([null]);
     //   bucket_name = urlParams.get("clb-collab-id")
@@ -54,8 +54,10 @@ function App() {
       currentBucket={currentBucket}
       SetCurrentBucket={SetCurrentBucket}
       token={token}
+      setFiles = {setFiles} 
+      curDirPath={curDirPath} 
       ></SearchAbleDropdown>
-      <MyChonkyTable  token={token} currentBucket={currentBucket} files={files} setFiles = {setFiles} folderChain = {folderChain} SetFolderChain={SetFolderChain} curDirPath={curDirPath} SetCurDirPath={SetCurDirPath}></MyChonkyTable>
+      <MyChonkyTable token={token} currentBucket={currentBucket} files={files} setFiles = {setFiles} folderChain = {folderChain} SetFolderChain={SetFolderChain} curDirPath={curDirPath} SetCurDirPath={SetCurDirPath}></MyChonkyTable>
       <JobProcessor
       
       currentBucket={currentBucket}
@@ -68,24 +70,6 @@ function App() {
 
 
 export default App;
-  // function getUser() {
-  //   var user_nid = "";
-  //   return new Promise((resolve, reject) => {
-  //     // make request to getUser
-  //     var xhr = new XMLHttpRequest();
-  //     xhr.open("GET", "https://localhost:8080/getuser", true);
-  //     xhr.setRequestHeader("Content-Type", "application/json");
-  //     xhr.setRequestHeader("Authorization", token);
-  //     xhr.send();
-  //     xhr.onreadystatechange = function () {
-  //       if (xhr.readyState == 4 && xhr.status == 200) {
-  //         var user = xhr.responseText;
-  //         user = JSON.parse(user).data;
-  //         user_nid = user["https://schema.hbp.eu/users/nativeId"];
-          
-  //         resolve(user);
-  //       }
-  //   }
-  // });
+
   // };
   
