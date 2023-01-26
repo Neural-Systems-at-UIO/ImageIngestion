@@ -20,11 +20,11 @@
     // call /listBucket
     let bucketName = document.getElementById("bucketName").value;
     let url = "/listBucket?bucketName=" + bucketName;
-    console.log(url);
+    
     fetch(url)
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        
         // display the files
         data = data["objects"];
         let files = document.getElementById("files");

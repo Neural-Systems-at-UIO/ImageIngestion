@@ -12,7 +12,7 @@
       let URL = "https://tif-dzi-tar-svc-test.apps.hbp.eu";
       let client_id = "ImageIngestion";
       let redirect_uri = `${URL}/app`;
-      console.log(redirect_uri);
+      
       location.href = `https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect/auth?response_type=code&login=true&client_id=${client_id}&redirect_uri=${redirect_uri}&state=${encodeURIComponent(
         JSON.stringify(state)
       )}`;

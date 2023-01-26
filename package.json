@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@ant-design/icons": "^5.0.1",
+    "ajv": "^7.2.3",
+    "ajv-errors": "^2.0.1",
+    "ajv-formats": "^2.1.1",
     "antd": "^5.0.7",
     "axios": "^0.21.4",
     "child_process": "^1.0.2",
@@ -20,11 +24,12 @@
     "react-dom": "^18.2.0",
     "react-scripts": "4.x.x",
     "request": "^2.88.2",
+    "sockjs-client": "^1.5.2",
     "util": "^0.12.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "dev": "concurrently \"NODE_ENV=development nodemon server.js\" \"PORT=8080 HTTPS=true  react-scripts start \"",
+    "dev": "(NODE_ENV=development nodemon server.js) & (PORT=8081 HTTPS=true  react-scripts start)",
     "start": "NODE_ENV=production java='~/jdk-19.0.2/bin/java' nodemon --ignore runningJobs/* --experimental-modules server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -44,6 +49,7 @@
     ]
   },
   "devDependencies": {
-    "concurrently": "^7.6.0"
+    "concurrently": "^7.6.0",
+    "https-localhost": "^4.7.1"
   }
 }

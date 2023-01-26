@@ -8,8 +8,12 @@ const fetch = (...args) =>
 var express = require("express");
 const path = require("path");
 const axios = require("axios");
-const app = express();
-// const app = require("https-localhost")();
+if (process.env.NODE_ENV === "development") {
+  var app = require("https-localhost")();
+}
+else if (process.env.NODE_ENV === "production") {
+  var app = express();
+}
 const uuidv4 = require("uuid").v4;
 require("dotenv").config();
 
@@ -29,9 +33,9 @@ app.get("/bucketurl/", (req, res) => {
 });
 
 app.get("/auth/", (req, res) => {
-  console.log('request received')
+  
   var code = req.query.code;
-  console.log('code', code)
+  
   get_token(code, res);
 });
 // serve index.html
@@ -46,27 +50,58 @@ app.get("/", function (req, res) {
 
 });
 
+
+
+function GetUser(token) {
+  // return new Promise((resolve, reject) => {
+    requestURL = `https://core.kg.ebrains.eu/v3/users/me`;
+    return axios.get(requestURL, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        },
+    })
+   
+
+}
+
+
+
+app.get("/getuser", function (req, res) {
+  // get token from header
+  
+  var token = req.headers.authorization;
+  GetUser(token).then(
+    function (result) {
+      
+
+      res.send(result.data);
+    }
+  );
+
+});
 app.get("/app", function (req, res) {
-  console.log(process.env.NODE_ENV)
-  console.log("app")
-  // console.log("req", req)
+  
+  
+  // 
   if (process.env.NODE_ENV === "production") {
-    console.log('serving build')
-    console.log(req.url)
+    
+    
     // edit the current url without redirect
     res.sendFile(path.join(__dirname, "build", "index.html"));
   } else {
     // redirect to localhost:8080 on the browser
     // get_token(req.query.code, res);
-    console.log("redirecting to localhost:8080" )
+    
+    
     // attach the query parameters to the url
-    res.redirect("https://localhost:8080" + req.url);
+    res.redirect("https://localhost:8081" + req.url);
   }
 });
 
 app.get("/listBucket", function (req, res) {
   // get token from header
-  console.log(req.query.URL);
+  
   var token = req.headers.authorization;
   //
   var bucketName = req.query.bucketName;
@@ -87,11 +122,13 @@ app.get("/tiffListToTarDZI", function (req, res) {
   var bucketName = req.query.bucketname;
   var file_list = req.query.filelist;
   file_list = file_list.split(",");
+  var brainID = req.query.brainID;
   var token = req.headers.authorization;
-  console.log("file_list", file_list);
-  console.log("bucketName", bucketName);
-  // console.log('token', token)
-  convert_list_of_tiffs_to_tarDZI(bucketName, file_list, token, res);
+  
+  
+  
+  // 
+  convert_list_of_tiffs_to_tarDZI(bucketName, file_list, token, brainID, res);
 });
 
 app.use(function (req, res, next) {
@@ -109,15 +146,22 @@ app.get("/jobStatus", function (req, res) {
   var jobID = req.query.jobID;
   respondToJobPoll(jobID, res);
 });
+
+app.get("/checkForRunningJobs", function (req, res) {
+  var bucketName = req.query.bucketName;
+  checkForRunningJobsFromBucket(bucketName, res)
+
+})
+
 app.use(express.static(path.join(__dirname, "public")));
 
 // function which lists all files in bucket
 function list_bucket_files(res, bucketname, folderName, token) {
-  console.log("bucketname", bucketname);
-  console.log("folderName", folderName);
-  console.log("token", token)
+  
+  
+  
   requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}?prefix=${folderName}&limit=50&delimiter=/`;
-  // console.log("requestURl", requestURl);
+  // 
   axios
     .get(requestURl, {
       headers: {
@@ -127,7 +171,7 @@ function list_bucket_files(res, bucketname, folderName, token) {
     })
     .then(function (response) {
       // set response status to 200
-      console.log(response);
+      // 
       res.status(response.status);
       // encode response data to json
 
@@ -135,7 +179,7 @@ function list_bucket_files(res, bucketname, folderName, token) {
       res.send(data);
     })
     .catch(function (error) {
-      console.log(error);
+      
       res.status(error.response.status);
       res.send(error.response.data);
     });
@@ -182,7 +226,7 @@ function curl_and_save(bucketName, file_name) {
 }
 
 var RunningJobs = {};
-function initJob(total_images) {
+function initJob(total_images, bucket_name, brainID) {
   // generate job id
   var jobID = uuidv4();
   // create a job folder within the runningJobs folder
@@ -194,15 +238,47 @@ function initJob(total_images) {
     total_images: total_images,
     status: "running",
     progress: 0,
+    bucket_name: bucket_name,
+    brainID: brainID,
+    jobID : jobID
   };
   // return job id
   return jobID;
 }
 function updateJob(jobID, status, progress) {
-  console.log("RunningJobs", RunningJobs);
+  
   RunningJobs[jobID].status = status;
   RunningJobs[jobID].progress = progress;
 }
+function checkForRunningJobsFromBucket(bucketName, res) {
+  
+  
+  // use map to see if there are any running jobs from the bucket
+  runningJobsFromBucket = {}
+  for (var jobID in RunningJobs) {
+    
+    
+    if (RunningJobs[jobID].bucket_name == bucketName) {
+      runningJobsFromBucket[jobID] = RunningJobs[jobID]
+
+    }
+  }
+  
+  // create a new objecty wtih only the running jobs from the bucket
+  
+  // if there are running jobs from the bucket, return the job id
+  
+  if (Object.keys(runningJobsFromBucket).length > 0) {
+    
+    res.send(runningJobsFromBucket);
+  }
+  // if there are no running jobs from the bucket, return false
+  else {
+    res.send(false);
+  };
+}
+
+
 function respondToJobPoll(jobID, res) {
   // check if job exists
 
@@ -234,7 +310,7 @@ function curlFromBucket(target_url, file_name, jobID) {
 }
 function DownloadFromBucket(bucketName, file_name, token, jobID) {
   updateJob(jobID, "Downloading file", 10);
-  console.log("Downloading file");
+  console.log("downloading file with token: " + token + "from bucket: " + bucketName + " and file: " + file_name + "")
   return GetDownloadLink(bucketName, file_name, token).then(function (
     response
   ) {
@@ -244,14 +320,14 @@ function DownloadFromBucket(bucketName, file_name, token, jobID) {
 
 function createPyramid(file_name, jobID) {
   updateJob(jobID, "Converting to DZI", 30);
-  console.log("Converting to DZI");
-  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.4.jar -i runningJobs/${jobID}/${file_name} -icr 0.1 -tf jpg  -o  runningJobs/${jobID}/ & `;
-  console.log("cmd", cmd)
+  
+  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.4.jar -i runningJobs/${jobID}/${file_name} -tf jpg  -o  runningJobs/${jobID}/ & `;
+  
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 function tarDZI(file_name, jobID) {
   updateJob(jobID, "Converting to tar", 70);
-  console.log("Converting to tar");
+  
   dzi_folder = file_name.split(".")[0] + "_files";
   var cmd = `tar -cf runningJobs/${jobID}/${dzi_folder}.tar runningJobs/${jobID}/${dzi_folder}`;
   return exec(cmd, { maxBuffer: 1024 * 500 });
@@ -259,7 +335,7 @@ function tarDZI(file_name, jobID) {
 
 function indexTar(file_name, jobID) {
   updateJob(jobID, "indexing tar", 80);
-  console.log("indexing tar");
+  
   stripped_file_name = file_name.split(".")[0];
   tar_name = stripped_file_name + "_files.tar";
   index_name = stripped_file_name + ".index";
@@ -290,7 +366,7 @@ function curlToBucket(target_url, file_name, jobID) {
 }
 
 function uploadToBucket(bucketName, file_name, token, jobID) {
-  console.log("uploading to bucket");
+  
   return getUploadLink(bucketName, file_name, token).then(function (response) {
     return curlToBucket(response.data.url, file_name, jobID);
   });
@@ -330,8 +406,9 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
       .then(() => updateJob(jobID, "Done", 100))
       .then(() => resolve())
       .catch((error) => {
-        console.log(error);
+        // 
         updateJob(jobID, "Error", 0);
+        console.log(error);
         reject(error);
       });
   });
@@ -341,10 +418,11 @@ async function convert_list_of_tiffs_to_tarDZI(
   bucketName,
   file_list,
   token,
+  brainID,
   res
 ) {
   file_list_length = file_list.length;
-  var jobID = initJob((total_images = file_list_length));
+  var jobID = initJob((total_images = file_list_length), bucketName, brainID);
   createJobDir(jobID);
   res.send(jobID);
 
@@ -403,7 +481,7 @@ function get_token(code, res) {
     client_secret: process.env.CLIENT_SECRET,
     redirect_uri: `${redirect_uri}/app`,
   });
-  console.log(params.toString())
+  
   // make POST request to get token
   axios({
     method: "post",
@@ -417,7 +495,7 @@ function get_token(code, res) {
       // send token to client
       //
       token_ = response.data["access_token"];
-      console.log(token_)
+      
       // set status to 200
       res.status(response.status);
 
@@ -425,7 +503,7 @@ function get_token(code, res) {
     })
     .catch((error) => {
       // ;
-      console.log(error)
+      // 
       // res.status(error.response.status);
       res.send(error);
     });
