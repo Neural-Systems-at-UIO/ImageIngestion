@@ -542,15 +542,17 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
 function createJobMetadata(jobID, bucketName, brainID, file_list, token) {
   console.log('getting user....')
   GetUser(token).then(function (response) {
+    console.log('got user')
+    console.log(response.data)
     var jobMetadata = {
       jobID: jobID,
       bucketName: bucketName,
       brainID: brainID,
-      alternateName: response.data['http://schema.org/alternateName'],
-      email: response.data['http://schema.org/email'],
-      familyName: response.data['http://schema.org/familyName'],
-      givenName: response.data['http://schema.org/givenName'],
-      nativeID: response.data['http://schema.org/nativeID'],
+      alternateName: response.data.data['http://schema.org/alternateName'],
+      email: response.data.data['http://schema.org/email'],
+      familyName: response.data.data['http://schema.org/familyName'],
+      givenName: response.data.data['http://schema.org/givenName'],
+      nativeID: response.data.data['http://schema.org/nativeID'],
       creationTime: new Date().toISOString(),
 
       file_list: {
@@ -584,6 +586,13 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
     // get file size
     var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
     var fileSize = execSync(cmd).toString().trim();
+    // get number of channels
+    var cmd = `identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+    var numChannels = execSync(cmd).toString().trim();
+    // get bit depth
+    var cmd = `identify -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+    var bitDepth = execSync(cmd).toString().trim();
+
     // get image extension
     var imageExtension = file.split(".")[1];
     for (i in file_list) {
@@ -594,6 +603,8 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
         imageHeight: imageHeight,
         fileSize: fileSize,
         imageExtension: imageExtension,
+        numChannels: numChannels,
+        bitDepth: bitDepth
       };
   }
   }
@@ -635,7 +646,10 @@ async function convert_list_of_tiffs_to_tarDZI(
     await convert_tiff_to_tarDZI(bucketName, file_name, token, jobID);
     RunningJobs[jobID]["current_image"] = i + 1;
   }
+  console.log("Job Metadata Before Update: ", RunningJobs[jobID].jobMetadata)
   updateJobMetadata(jobID, file_list, RunningJobs[jobID].jobMetadata, token)
+  console.log("Job Metadata After Update: ", RunningJobs[jobID].jobMetadata)
+
 }
 
 function iterate_over_bucket_files(bucketname, folder_name) {
