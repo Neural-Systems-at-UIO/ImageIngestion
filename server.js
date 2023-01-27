@@ -603,7 +603,7 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
         imageHeight: imageHeight,
         fileSize: fileSize,
         imageExtension: imageExtension,
-        numChannels: numChannels,
+        channelFormat: numChannels,
         bitDepth: bitDepth
       };
   }
