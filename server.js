@@ -497,13 +497,11 @@ function zipDZI(filename, jobID) {
   // only zip the dzi folder
   var list_to_zip = [`${strip_file_name}_files`, `${strip_file_name}.dzi`];
   // write multiline command which first changes directory to the folder to be zipped, then zips the folder and then changes back to the original directory
-  var cmd = `cd runningJobs/${jobID}/${strip_file_name} && zip -0 -r ${strip_file_name}.zip ${list_to_zip.join(" ")} && cd ../../..`;
+  var cmd = `cd runningJobs/${jobID}/${strip_file_name} && ./zip -0 -r ${strip_file_name}.dzip ${list_to_zip.join(" ")} && cd ../../..`;
 
-  // var cmd = `zip -0 -r runningJobs/${jobID}/${strip_file_name}/${strip_file_name}.zip runningJobs/${jobID}/${strip_file_name}`;
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 
-  // var cmd = `zip -0 -r runningJobs/${jobID}/${strip_file_name}/${strip_file_name}.zip runningJobs/${jobID}/${strip_file_name}`;
 
 
 function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
@@ -513,7 +511,7 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
     var dziFile = `${stripFileName}.dzi`;
     var dziFolder = `${stripFileName}_files`;
     var dziTar = `${dziFolder}.tar`;
-    var dziZip = `${stripFileName}.zip`;
+    var dziZip = `${stripFileName}.dzip`;
     var file_list = [dziZip];
     var fileNameNoPath = fileName.split("/").pop();
     DownloadFromBucket(bucketName, fileName, token, jobID)
