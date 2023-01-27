@@ -3,7 +3,7 @@ import { Select } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ListBucketFiles } from "./ButtonActions";
 
-function getUser(token, setOptions) {
+function getUser(token) {
   console.log('getting user-.....')
   return new Promise((resolve, reject) => {
     // make request to getUser
@@ -22,7 +22,7 @@ function getUser(token, setOptions) {
       if (xhr.readyState == 4 && xhr.status == 200) {
         var user = xhr.responseText;
         user = JSON.parse(user);
-        console.log('user', user)          
+        // console.log('user', user)          
         resolve(user);
       }
       else {
@@ -31,6 +31,7 @@ function getUser(token, setOptions) {
   }
 });
 };
+
 function setDropdownOptions(collabs, setOptions) {
   var options = [];
   for (var i = 0; i < collabs.length; i++) {
@@ -51,18 +52,16 @@ function SearchAbleDropdown( params ) {
   var [options, setOptions] = useState(
 
 
-
     [
       { label: currentBucket, value: currentBucket},
     ]
   );
   
-  // useEffect(() => {
-    getUser(token).then(function(user) {
-      setDropdownOptions(user, setOptions)
-    }
-    )
-  // }, []);
+  useEffect(() => {
+    getUser(token).then((user) => {
+    setDropdownOptions(user, setOptions)
+    });
+  }, [token]);
 
   return(
   <div
