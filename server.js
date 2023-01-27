@@ -497,7 +497,7 @@ function zipDZI(filename, jobID) {
   // only zip the dzi folder
   var list_to_zip = [`${strip_file_name}_files`, `${strip_file_name}.dzi`];
   // write multiline command which first changes directory to the folder to be zipped, then zips the folder and then changes back to the original directory
-  var cmd = `cd runningJobs/${jobID}/${strip_file_name} && ./zip -0 -r ${strip_file_name}.dzip ${list_to_zip.join(" ")} && cd ../../..`;
+  var cmd = `cd runningJobs/${jobID}/${strip_file_name} && ../../../zip -0 -r ${strip_file_name}.dzip ${list_to_zip.join(" ")} && cd ../../..`;
 
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
