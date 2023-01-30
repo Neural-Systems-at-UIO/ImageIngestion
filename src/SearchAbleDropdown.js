@@ -3,7 +3,11 @@ import { Select } from 'antd';
 import React, { useEffect, useState } from 'react';
 import { ListBucketFiles } from "./ButtonActions";
 
-function getUser(token) {
+
+
+
+
+function getUserRoles(token) {
   
 
   return new Promise((resolve, reject) => {
@@ -68,7 +72,7 @@ function SearchAbleDropdown( params ) {
   );
   
   useEffect(() => {
-    getUser(token).then((user) => {
+    getUserRoles(token).then((user) => {
     setDropdownOptions(user, setOptions)
     })
     .catch((err) => {

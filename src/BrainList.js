@@ -13,10 +13,12 @@ function getItem(label, key, icon, children, type) {
 
 
 // takes argument of itemsj
-const BrainList = ({ items, SetCurrentJob })  => {
+const BrainList = ({ items, CurrentJob, SetCurrentJob })  => {
     const onClick = (e) => {
       ;
-      SetCurrentJob(e.key);
+      CurrentJob = e.key;
+      SetCurrentJob(CurrentJob);
+      console.log('brainlist currenet job', CurrentJob)
 
     };
 

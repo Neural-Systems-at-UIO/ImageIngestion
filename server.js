@@ -46,24 +46,6 @@ const wss = new WebSocket.Server({
 
 
 
-wss.on('connection', function connection(ws) {
-  ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
-    ws.send('something');
-
-  });
-
-});
-
-server.listen('8082', function listening() {
-  ;
-});
-
-// end of websocket server
-
-
-
-
 
 
 
@@ -101,15 +83,25 @@ app.get("/", function (req, res) {
 
 
 function GetUser(token) {
-  // return new Promise((resolve, reject) => {
+  console.log('trying with token: ' + token)
+  return new Promise((resolve, reject) => {
     requestURL = `https://core.kg.ebrains.eu/v3/users/me`;
-    return axios.get(requestURL, {
+    axios.get(requestURL, {
       headers: {
         Authorization: `${token}`,
         "Content-Type": "application/json",
         },
     })
-   
+    .then(function (result) {
+      resolve(result);
+    })
+    .catch(function (error) {
+      // ;
+      console.log(error)
+      reject(error);
+    }
+    );
+  })
 
 }
 
@@ -128,6 +120,7 @@ app.get("/getuser", function (req, res) {
   )
   .catch(function (error) {
     // ;
+    console.log(error)
 
 });
 });
@@ -334,6 +327,63 @@ function curl_and_save(bucketName, file_name) {
     ;
 }
 
+
+
+wss.on('connection', function connection(ws) {
+  var message = JSON.stringify({message: 'connected'});
+  console.log('sending.................................................')
+
+  ws.send(message);
+  
+  console.log('connected');
+  // ws.userID = req.query.userID;
+  // console.log('connected uuid: ' + ws.userID);
+  ws.on('message', function incoming(message) {
+    console.log('------------------------------------')
+    console.log('received: %s', message);
+    console.log('------------------------------------')
+
+    var message = JSON.parse(message);
+    // check is user key is in message
+    if (message.user) {
+      
+      // console.log(message.user)
+      // console.log('----')
+      // console.log(message.user)
+      ws.userID = message.user["https://schema.hbp.eu/users/nativeId"];
+      ws.userName = message.user["http://schema.org/name"];
+    }
+    if (message.CurrentBucket) {
+      ws.CurrentBucket = message.CurrentBucket;
+    }
+    if (message.CurrentJob) {
+      ws.CurrentJob = message.CurrentJob;
+    }
+    // log all connected users
+    // console.log('connected users: ');
+    // wss.clients.forEach(function each(client) {
+    //   console.log('------------------')
+    //   console.log(client.userID);
+    //   console.log(client.userName);
+    // }
+    // );
+
+  });
+
+});
+
+server.listen('8082', function listening() {
+  ;
+});
+
+// end of websocket server
+
+
+
+
+
+
+
 var RunningJobs = {};
 function initJob(total_images, bucket_name, brainID) {
   // generate job id
@@ -355,10 +405,29 @@ function initJob(total_images, bucket_name, brainID) {
   return jobID;
 }
 function updateJob(jobID, status, progress) {
-  
+  console.log('updating with status: ' + status)
   RunningJobs[jobID].status = status;
   RunningJobs[jobID].progress = progress;
+  if (status == 'Done') {
+    RunningJobs[jobID]["current_image"] += 1 ;
+  }
+
+  console.log('updateJob', RunningJobs[jobID])
+  wss.clients.forEach(function each(client) {
+    console.log('------------------')
+    console.log(client.CurrentBucket);
+    console.log(RunningJobs[jobID].bucket_name);
+    if (client.CurrentBucket == RunningJobs[jobID].bucket_name) {
+        // console.log('client', client)
+        console.log('sending.................................................')
+       client.send(JSON.stringify({"JobUpdate":RunningJobs[jobID], "CurrentJob":client.CurrentJob}));
+    }
+  });
+  
+  
 }
+
+
 function checkForRunningJobsFromBucket(bucketName, res) {
   
   
@@ -407,6 +476,9 @@ function GetDownloadLink(bucketName, file_name, token) {
     Authorization: token,
     "Content-Type": "application/json",
   };
+  console.log('getting download link')
+  console.log(requestURL)
+  console.log(requestHeaders)
 
   return axios.get(requestURL, {
     headers: requestHeaders,
@@ -418,6 +490,8 @@ function curlFromBucket(target_url, file_name, jobID) {
   strip_file_name = file_name.split(".")[0];
   // create folder for image in running jobs/jobId folder
   var cmd = `curl "${target_url}" -o "runningJobs/${jobID}/${strip_file_name}/${file_name}"`;
+  console.log(cmd)
+  console.log('executing curl')
   return exec(cmd, { maxBuffer: 1024 * 500 });
   
 }
@@ -437,23 +511,19 @@ function copyFileInBucket(bucket_name, file_name, new_file_name, token) {
 
 function DownloadFromBucket(bucketName, file_name, token, jobID) {
   updateJob(jobID, "Downloading file", 10);
-  
+  console.log("downloading file with token: " + token + "from bucket: " + bucketName + " and file: " + file_name + "")
   return GetDownloadLink(bucketName, file_name, token).then(function (
     response
   ) {
+    console.log('now we curl from bucket')
     return curlFromBucket(response.data.url, file_name, jobID);
-  })
-  .catch(function (error) {
-    ;
-  })
-  ;
+  });
 }
-
 function createPyramid(file_name, jobID) {
-  updateJob(jobID, "Converting to DZI", 30);
+  // updateJob(jobID, "Converting to DZI", 30);
   strip_file_name = file_name.split(".")[0];
   var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf jpg  -o  runningJobs/${jobID}/${strip_file_name}/ & `;
-  
+  console.log(cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 function tarDZI(file_name, jobID) {
@@ -535,6 +605,8 @@ function uploadToBucket(bucketName, file_name, token, jobID, proj_file) {
     return curlToBucket(response.data.url, file_name, jobID, proj_file);
   })
   .catch(function (error) {
+    console.log('this failed')
+    console.log(error)
     ;
   })
   ;
@@ -594,6 +666,7 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
       .then(() => resolve())
       .catch((error) => {
         // 
+        console.log(error)
         updateJob(jobID, "Error", 0);
         ;
         reject(error);
@@ -631,6 +704,8 @@ function createJobMetadata(jobID, bucketName, brainID, file_list, token) {
   RunningJobs[jobID]['jobMetadata'] = jobMetadata;
   })
   .catch(function (error) {
+    console.log("Error in createJobMetadata")
+    console.log(error)
     ;
   })
   ;
@@ -711,7 +786,9 @@ async function convert_list_of_tiffs_to_tarDZI(
   for (var i = 0; i < file_list_length; i++) {
     var file_name = file_list[i];
     await convert_tiff_to_tarDZI(bucketName, file_name, token, jobID);
-    RunningJobs[jobID]["current_image"] = i + 1;
+    // 
+    // updateJob(jobID, 'Done', 100) 
+    
   }
   
   updateJobMetadata(jobID, file_list, RunningJobs[jobID].jobMetadata, token)
@@ -745,7 +822,7 @@ function iterate_over_bucket_files(bucketname, folder_name) {
       }
     })
     .catch(function (error) {
-      ;
+      console.log(error);
     });
 }
 
@@ -796,6 +873,7 @@ function get_token(code, res) {
     .catch((error) => {
       // ;
       // 
+      console.log(error)
       // ;
       res.status(error.response.status);
       res.send(error);
@@ -803,3 +881,5 @@ function get_token(code, res) {
 
   
 }
+
+
