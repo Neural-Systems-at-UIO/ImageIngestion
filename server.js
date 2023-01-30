@@ -2,6 +2,12 @@ var fs = require("fs");
 const util = require("util");
 const exec = util.promisify(require("child_process").exec);
 
+
+
+// remove all console.logs with this regex
+// console.log\((.*)\)
+
+
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
@@ -9,16 +15,57 @@ var express = require("express");
 const path = require("path");
 const axios = require("axios");
 const execSync = require("child_process").execSync;
-if (process.env.NODE_ENV === "development") {
-  var app = require("https-localhost")();
-}
-else if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production") {
   var app = express();
 }
+else {
+  var app = require("https-localhost")();
+}
+
+
 const uuidv4 = require("uuid").v4;
 require("dotenv").config();
 
 const cors = require("cors");
+
+
+
+
+// imports for the webSocket
+const WebSocketServer = require('ws');
+const http = require('http');
+
+const server = http.createServer();
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({
+  port: 8083
+})
+
+
+
+
+
+wss.on('connection', function connection(ws) {
+  ws.on('message', function incoming(message) {
+    console.log('received: %s', message);
+    ws.send('something');
+
+  });
+
+});
+
+server.listen('8082', function listening() {
+  ;
+});
+
+// end of websocket server
+
+
+
+
+
+
 
 app.use(cors());
 
@@ -78,8 +125,11 @@ app.get("/getuser", function (req, res) {
 
       res.send(result.data);
     }
-  );
+  )
+  .catch(function (error) {
+    // ;
 
+});
 });
 function GetUserRoles(token) {
     requestURL = `https://core.kg.ebrains.eu/v3/users/me/roles`;
@@ -97,19 +147,15 @@ app.get("/getuserroles", function (req, res) {
   // get token from header
 
   var token = req.headers.authorization;
+  
   GetUserRoles(token).then(
     function (result) {
-      console.log('recieved user roles')
       var finalColabs = [];
 
       var userRoles = result.data.data.userRoles;
       // get the keys from the user roles
       var keys = Object.keys(userRoles);
-      // console.log('---------------------------------------')
-      // console.log('keys', keys)
-      // console.log('---------------------------------------')
 
-      // console.log('userRoles', userRoles)
       
       for (var i = 0; i < userRoles.length; i++) {
         var userRole = userRoles[i];
@@ -128,11 +174,16 @@ app.get("/getuserroles", function (req, res) {
           }
         }
       }
-      console.log('finalColabs', finalColabs)
       res.send(finalColabs);
 
     }
-  );
+  )
+  .catch(function (error) {
+    ;
+  })
+  ;
+
+
   });
 app.get("/app", function (req, res) {
   
@@ -276,7 +327,11 @@ function curl_and_save(bucketName, file_name) {
       var cmd = `curl "${response.data.url}" -o "${file_name}"`;
       // ;
       promise = exec(cmd, function (error, stdout, stderr) {});
-    });
+    })
+    .catch(function (error) {
+      ;
+    })
+    ;
 }
 
 var RunningJobs = {};
@@ -374,7 +429,7 @@ function copyFileInBucket(bucket_name, file_name, new_file_name, token) {
     Authorization: token,
     "Content-Type": "application/json",
   };
-  console.log('t', requestURL)
+  
   return axios.put(requestURL, {}, {
     headers: requestHeaders,
   });
@@ -382,12 +437,16 @@ function copyFileInBucket(bucket_name, file_name, new_file_name, token) {
 
 function DownloadFromBucket(bucketName, file_name, token, jobID) {
   updateJob(jobID, "Downloading file", 10);
-  console.log("downloading file with token: " + token + "from bucket: " + bucketName + " and file: " + file_name + "")
+  
   return GetDownloadLink(bucketName, file_name, token).then(function (
     response
   ) {
     return curlFromBucket(response.data.url, file_name, jobID);
-  });
+  })
+  .catch(function (error) {
+    ;
+  })
+  ;
 }
 
 function createPyramid(file_name, jobID) {
@@ -459,11 +518,11 @@ function curlToBucket(target_url, file_name, jobID, proj_file) {
   // save output to runningJobs folder
   strip_file_name = file_name.split(".")[0];
   if (proj_file) {
-    console.log("proj file")
+    
     var cmd = `curl -X PUT -T runningJobs/${jobID}/${file_name} "${target_url}"`;
 
   } else {
-    console.log("no proj file")
+    
 
     var cmd = `curl -X PUT -T runningJobs/${jobID}/${strip_file_name}/${file_name} "${target_url}"`;
   }
@@ -474,7 +533,11 @@ function uploadToBucket(bucketName, file_name, token, jobID, proj_file) {
   
   return getUploadLink(bucketName, file_name, token).then(function (response) {
     return curlToBucket(response.data.url, file_name, jobID, proj_file);
-  });
+  })
+  .catch(function (error) {
+    ;
+  })
+  ;
 }
 
 function uploadListToBucket(bucketName, file_list, token, jobID) {
@@ -532,7 +595,7 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
       .catch((error) => {
         // 
         updateJob(jobID, "Error", 0);
-        console.log(error);
+        ;
         reject(error);
       });
       copyFileInBucket(bucketName, fileName,`.nesysWorkflowFiles/originalImages/${RunningJobs[jobID].brainID}/${fileNameNoPath}` , token)
@@ -540,10 +603,10 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
 }
 
 function createJobMetadata(jobID, bucketName, brainID, file_list, token) {
-  console.log('getting user....')
+  
   GetUser(token).then(function (response) {
-    console.log('got user')
-    console.log(response.data)
+    
+    
     var jobMetadata = {
       jobID: jobID,
       bucketName: bucketName,
@@ -566,7 +629,11 @@ function createJobMetadata(jobID, bucketName, brainID, file_list, token) {
     jobMetadata.file_list[file] = {};
 }
   RunningJobs[jobID]['jobMetadata'] = jobMetadata;
-  });
+  })
+  .catch(function (error) {
+    ;
+  })
+  ;
 }
 
 function updateJobMetadata(jobID, file_list, jobMetadata, token) {
@@ -574,7 +641,7 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
     file = file_list[i];
     var cmd = `pwd`;
     var pwd = execSync(cmd).toString().trim();
-    console.log('pwd is ' + pwd)
+    
     // get image resolution
     var strip_file_name = file.split(".")[0];
     // get image width, note that file could be .jpg .png .tif, etc
@@ -609,8 +676,8 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
   }
   }
   RunningJobs[jobID].jobMetadata = jobMetadata;
-  console.log('saving job metadata....')
-  console.log(RunningJobs[jobID].jobMetadata)
+  
+  
   saveJobMetaData(jobID, token);
 
 }
@@ -618,14 +685,14 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
 function saveJobMetaData(jobID, token) {
   var jobMetadata = RunningJobs[jobID].jobMetadata;
   var jobMetadataString = JSON.stringify(jobMetadata);
-  console.log('saving job metadata to file....')
+  
   var fileName = jobMetadata.brainID;
   var strip_file_name = fileName.split(".")[0];
   var jobMetadataFile = `${strip_file_name}.json`;
   fs.writeFileSync(`runningJobs/${jobID}/${jobMetadataFile}` , jobMetadataString);
   // upload jobMetadata.json to bucket
   var target_bucket =  `${jobMetadata.bucketName}/.nesysWorkflowFiles/Metadata/`
-  console.log('uploading job metadata to bucket....', jobMetadataFile)
+  
   uploadToBucket(target_bucket, jobMetadataFile, token, jobID, true);
 }
 async function convert_list_of_tiffs_to_tarDZI(
@@ -646,9 +713,9 @@ async function convert_list_of_tiffs_to_tarDZI(
     await convert_tiff_to_tarDZI(bucketName, file_name, token, jobID);
     RunningJobs[jobID]["current_image"] = i + 1;
   }
-  console.log("Job Metadata Before Update: ", RunningJobs[jobID].jobMetadata)
+  
   updateJobMetadata(jobID, file_list, RunningJobs[jobID].jobMetadata, token)
-  console.log("Job Metadata After Update: ", RunningJobs[jobID].jobMetadata)
+  
 
 }
 
@@ -677,7 +744,9 @@ function iterate_over_bucket_files(bucketname, folder_name) {
         dzi_to_tar(dzi_folder);
       }
     })
-    .catch(function (error) {});
+    .catch(function (error) {
+      ;
+    });
 }
 
 
@@ -687,6 +756,7 @@ function iterate_over_bucket_files(bucketname, folder_name) {
 var token_ = null;
 
 function get_token(code, res) {
+  
   var target_url =
     "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect/token";
   //
@@ -726,7 +796,10 @@ function get_token(code, res) {
     .catch((error) => {
       // ;
       // 
-      // res.status(error.response.status);
+      // ;
+      res.status(error.response.status);
       res.send(error);
     });
+
+  
 }

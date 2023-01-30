@@ -7,8 +7,43 @@ import {getToken} from "./getToken";
 import { ListBucketFiles } from "./ButtonActions";
 import SearchAbleDropdown from "./SearchAbleDropdown";
 
-console.log('getToken', getToken)
+// handle imports for the websocket
+import useWebSocket, { ReadyState } from "react-use-websocket";
+
+
+// handle requests for the websocket
+const WS_URL = "ws://localhost:8083";
+
+
+// create onmessage function for the websocket
+
+// 
+var count = 0
 function App() {
+
+  const {
+    sendMessage,
+    sendJsonMessage,
+    lastMessage,
+    lastJsonMessage,
+    readyState,
+    getWebSocket,
+  } = useWebSocket(WS_URL, {
+    onOpen: () => {
+      console.log("opened count: " + count);
+      count = count + 1;
+      // add a listener to the websocket
+      getWebSocket().addEventListener("message", (event) => {
+        console.log(event.data);
+      });
+
+
+    }
+  });
+  // send a message to the websocket
+  count = count + 1;
+  // sendMessage("Hello" + count);  
+
 
   const [folderChain, SetFolderChain] = useState([{ id: '/', name: 'Home', isDir: true, openable:true},]);
   var   [curDirPath, SetCurDirPath] = useState("");
@@ -18,23 +53,26 @@ function App() {
     //   bucket_name = urlParams.get("clb-collab-id")
   // setToken(8);
   // SetCurrentBucket("deepslice");
-  console.log("currentBucket", currentBucket)
-  console.log('token', token)
-  if (token == null) {
-    getToken().then((token) => {
-      token = token;
-      SetToken(token);
-
+  useEffect(() => {
+    
+    
+    getToken(token)
+    .then((ret_val) => {
+      token = ret_val;
+      SetToken(ret_val);
+      
       ListBucketFiles(
       setFiles,
       currentBucket,
       curDirPath,
       token
-    );
-    console.log(token)
-  })
-  
-  }
+    )
+    })
+    .catch((err) => {
+      
+    })
+    ;
+  }, []);
 
 
 

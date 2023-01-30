@@ -23,16 +23,20 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "4.x.x",
+    "react-use-websocket": "^4.2.0",
     "request": "^2.88.2",
     "sockjs-client": "^1.5.2",
     "util": "^0.12.5",
     "web-vitals": "^2.1.4"
   },
   "nodemonConfig": {
-    "ignore": ["runningJobs/*"]
+    "ignore": [
+      "runningJobs/*"
+    ]
   },
   "scripts": {
-    "dev": "(NODE_ENV=development node server.js) & (PORT=8081 HTTPS=true  react-scripts start)",
+    "dev": "(NODE_ENV=development nodemon server.js) & (PORT=8081 HTTPS=true  react-scripts start)",
+    "dev-react": "PORT=8081 HTTPS=true react-scripts start",
     "start": "NODE_ENV=production java='~/jdk-19.0.2/bin/java' node --experimental-modules server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",

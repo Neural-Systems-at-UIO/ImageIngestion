@@ -168,7 +168,7 @@ function createFileChain(targetFilePath) {
       } else {
         var target_url = process.env.REACT_APP_PROD_URL;
       }
-      console.log('trying with token: ' + token)
+      
       xhr.open(
         "GET",
         `${target_url}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}`,
@@ -192,7 +192,7 @@ function createFileChain(targetFilePath) {
     var setFiles = args.setFiles;
     var token = args.token;
     var bucket_name = args.currentBucket;
-    console.log("token", token)
+    
     function passToFileAction (SetFolderChain, curDirPath, SetCurDirPath,setFiles,bucket_name, token) {
         return function (data) {
             FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath,setFiles,bucket_name, token);
@@ -200,12 +200,12 @@ function createFileChain(targetFilePath) {
     }
 
     var button = document.querySelector('[title=" "]');
-    console.log("button", button)
+    
     // make button invisible
     if (button != null) {
         button.style.display = "none";
     }
-    console.log('token: ', token)
+    
     return (
         <div style = {{'height': '70vh'}}>
         <input

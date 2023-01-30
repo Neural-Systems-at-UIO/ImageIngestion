@@ -15,7 +15,7 @@ function getItem(label, key, icon, children, type) {
 // takes argument of itemsj
 const BrainList = ({ items, SetCurrentJob })  => {
     const onClick = (e) => {
-      console.log('click ', e);
+      ;
       SetCurrentJob(e.key);
 
     };

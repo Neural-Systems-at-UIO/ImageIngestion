@@ -4,8 +4,17 @@ import React, { useEffect, useState } from 'react';
 import { ListBucketFiles } from "./ButtonActions";
 
 function getUser(token) {
-  console.log('getting user-.....')
+  
+
   return new Promise((resolve, reject) => {
+    if (token == null) {
+      
+      reject('token is null');
+      return null;
+    }
+    else  {
+      
+      
     // make request to getUser
     var xhr = new XMLHttpRequest();
     if (process.env.NODE_ENV === "development") {
@@ -22,13 +31,14 @@ function getUser(token) {
       if (xhr.readyState == 4 && xhr.status == 200) {
         var user = xhr.responseText;
         user = JSON.parse(user);
-        // console.log('user', user)          
+                  
         resolve(user);
       }
       else {
-        console.log('error', xhr.status)
+        
       }
   }
+}
 });
 };
 
@@ -60,7 +70,11 @@ function SearchAbleDropdown( params ) {
   useEffect(() => {
     getUser(token).then((user) => {
     setDropdownOptions(user, setOptions)
-    });
+    })
+    .catch((err) => {
+      
+    })
+    ;
   }, [token]);
 
   return(
@@ -87,7 +101,7 @@ function SearchAbleDropdown( params ) {
     onChange={(value) => {
       currentBucket = value;
       SetCurrentBucket(value);
-      console.log('setFiles', params.setFiles);
+      ;
       ListBucketFiles(
         params.setFiles,
         currentBucket,

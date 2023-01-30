@@ -143,12 +143,12 @@ function createFolder(folder, bucket_name, token) {
 
       xhr2.send();
       xhr2.onreadystatechange = function () {
-        console.log(xhr2.status)
+        
         if (xhr2.status == 201 && xhr2.readyState == 4) {
-          console.log('success')
+          
         } else {
           // log error
-          console.log("error")
+          
         }
       }
     }
@@ -159,19 +159,19 @@ function createFolder(folder, bucket_name, token) {
 function filterForImageAndSubdir(files, bucket_name, token) {
   var newFiles = [];
   var accepted_types = ["tif", "tiff", "jpg", "jpeg", "png"];
-  console.log(files)
+  
   var workFlowDotFilePresent = false;
   for (let i = 0; i < files.length; i++) {
     if (files[i].name == ".nesysWorkflowFiles") {
-      workFlowDotFilePresent = false;
-      // console.log(files[i])
+      workFlowDotFilePresent = true;
+      // 
     }
     var newFile = getNewFile(files[i], accepted_types);
     if (newFile != null) {
       newFiles.push(newFile);
     }
   }
-  console.log("workflowDotFile", workFlowDotFilePresent)
+  
   if (!workFlowDotFilePresent) {
     createFolder('.nesysWorkflowFiles', bucket_name, token);
     createFolder('.nesysWorkflowFiles/originalImages', bucket_name, token);

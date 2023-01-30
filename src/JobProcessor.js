@@ -63,7 +63,7 @@ function CreateBrain() {
       // get the button with title "Generate Brain from Files"
       var button = document.querySelector('[title=" "]');
       ;
-      console.log("clicking")
+      
       button.click();
       var popover = document.querySelector('.ant-popover');
     //   popover.style.display = "none";
@@ -100,7 +100,7 @@ function CreateBrain() {
   SetTotalImage,
   SetProgressImage
 ) {
-    console.log("polling job status" + jobID)
+    
   var xhr = new XMLHttpRequest();
   if (process.env.NODE_ENV === "development") {
     var target_url = process.env.REACT_APP_DEV_URL;
@@ -176,7 +176,7 @@ function restartPoller() {
 }
 
 useEffect(() => {
-    console.log("CurrentJob", CurrentJob);
+    ;
     restartPoller();
 
 }, [CurrentJob]);
@@ -193,7 +193,7 @@ useEffect(() => {
       bucket_name
     );
   
-  }, []);
+  }, [bucket_name]);
 
 return (
     <div style={{ display: "flex" }}>
