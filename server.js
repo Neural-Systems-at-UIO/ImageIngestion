@@ -7,9 +7,10 @@ const exec = util.promisify(require("child_process").exec);
 // remove all console.logs with this regex
 // console.log\((.*)\)
 
-
-const fetch = (...args) =>
-  import("node-fetch").then(({ default: fetch }) => fetch(...args));
+// import fetch in old node
+const fetch = require("node-fetch")
+// const fetch = (...args) =>
+//   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 
 var express = require("express");
 const path = require("path");
@@ -197,6 +198,13 @@ app.get("/app", function (req, res) {
   }
 });
 
+
+
+
+
+
+
+
 app.get("/listBucket", function (req, res) {
   // get token from header
   
@@ -242,7 +250,9 @@ app.listen(port, ip, () => {});
 
 app.get("/jobStatus", function (req, res) {
   var jobID = req.query.jobID;
-  respondToJobPoll(jobID, res);
+  var token = req.headers.authorization;
+  var bucket_name = req.query.bucketName;
+  respondToJobPoll(jobID, token, bucket_name, res);
 });
 
 app.get("/checkForRunningJobs", function (req, res) {
@@ -358,6 +368,7 @@ wss.on('connection', function connection(ws) {
     }
     if (message.CurrentJob) {
       ws.CurrentJob = message.CurrentJob;
+      ws.KeyPath = message.KeyPath;
     }
     // log all connected users
     // console.log('connected users: ');
@@ -462,15 +473,46 @@ function checkForRunningJobsFromBucket(bucketName, res) {
   };
 }
 
+function ReadJobMetadata(bucketName, brainID, token, res) {
+  GetDownloadLink(bucketName, '.nesysWorkflowFiles/Metadata/' + brainID + ".json", token)
+    .then(function (response) {
+      // load json from response.data.url with fetch
+      console.log('url: ' + response.data.url)
+      fetch(response.data.url)
 
-function respondToJobPoll(jobID, res) {
+        .then((response) =>{
+          
+          return response.json()
+        } )
+        .then((json) => {
+          console.log(json)
+          var return_json = {
+            status: "Done",
+            progress: 100,
+            jobID: json.jobID,
+            bucket_name: bucketName,
+            brainID: brainID,
+            current_image: Object.keys(json.file_list).length,
+            total_images: Object.keys(json.file_list).length,
+          }
+          res.send(return_json);
+        })
+        .catch((error) => {
+          console.log('error: ' + error)
+          });
+    })
+  }
+
+
+function respondToJobPoll(jobID, token, bucket_name, res) {
   // check if job exists
 
   if (!RunningJobs[jobID]) {
-    res.send({
-      status: "does not exist",
-      progress: 0,
-    });
+    ReadJobMetadata(bucket_name, jobID, token, res)
+    // res.send({
+    //   status: "does not exist",
+    //   progress: 0,
+    // });
   } else {
     res.send(RunningJobs[jobID]);
   }

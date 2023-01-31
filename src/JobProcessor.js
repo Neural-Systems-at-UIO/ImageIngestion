@@ -14,7 +14,7 @@ if (process.env.NODE_ENV === "development") {
   var WS_URL = "ws://localhost:8083";
 }
 else {
-  var WS_URL =  "ws://tif-dzi-tar-svc-test.apps.hbp.eu:8083"
+  var WS_URL =  ":8083"
 }
 
 console.log("WS_URL: ", WS_URL)
@@ -31,6 +31,65 @@ function getItem(label, key, icon, children, type) {
     type,
   };
 }
+
+function listFinalisedBrains(bucket_name, setItems, items, token) {
+  const xhr = new XMLHttpRequest();
+  if (process.env.NODE_ENV === "development") {
+    var target_url = process.env.REACT_APP_DEV_URL;
+  } else {
+    var target_url = process.env.REACT_APP_PROD_URL;
+  }
+  xhr.open(
+    "GET",
+    `${target_url}/listBucket?bucketName=${bucket_name}&folderName=.nesysWorkflowFiles/alignmentJsons/`,
+    true
+  );
+  xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+  xhr.send();
+  xhr.onload = function () {
+    if (xhr.status === 200 && xhr.readyState === 4) {
+      var response = JSON.parse(xhr.responseText);
+      console.log('----------------------------------')
+      for (var i = 0; i < response.objects.length; i++) {
+        if (response.objects[i].name.endsWith('.waln')) {
+          var data = response.objects[i].name.split('/')
+          // get last element
+          var brainID = data[data.length - 1].split('.')[0]
+          var array = {'brainID': brainID, 'jobID': brainID, 'status': 'finalised', 'progress': 100, 'total_images': 0, 'current_image': 0}
+          items = AddToItems(setItems, items, array, 'Prepared Brains')
+        }
+      }
+    } else {
+      console.log("Error: ", xhr.status);
+      console.log(xhr.responseText);
+    }
+  };
+
+}
+
+
+// function AddToItems(setItems, items, job, state) {
+
+//   var item_name = job.brainID
+//   var itemID =  job.jobID
+//   console.log('job', job)
+//   var new_list = []
+//   for (var i in items) {
+//     var item_list = []
+//     if (items[i].label == "Processing") {
+//       var icon = <LoadingOutlined />
+//     }
+//     else {
+//       var icon = <CheckOutlined />
+//     }
+//     if (items[i].label == state) {
+//       if (items[i].children) {
+//         var newEntry = getItem(item_name, itemID, icon)
+        
+//         newEntry['current_image'] = job.current_image
+//         newEntry['total_images'] = job.total_images
+//         newEntry['progress'] = job.progress
+//         newEntry['status'] = job.status
 
 
 
@@ -111,11 +170,13 @@ function CreateBrain() {
 
 function pollJobStatus(
   jobID,
+  bucket_name,
   SetMessage,
   SetProgressValue,
   SetCurrentImage,
   SetTotalImage,
-  SetProgressImage
+  SetProgressImage,
+  token
 ) {
 
   var xhr = new XMLHttpRequest();
@@ -125,15 +186,19 @@ function pollJobStatus(
   else {
     var target_url = process.env.REACT_APP_PROD_URL;
   }
-  xhr.open("GET", `${target_url}/jobStatus?jobID=` + jobID, true);
+  xhr.open("GET", `${target_url}/jobStatus?jobID=` + jobID + `&bucketName=${bucket_name}`, true);
   // add query string
 
-
+  // add token to header
+  xhr.setRequestHeader("Authorization", "Bearer " + token);
   xhr.send();
   xhr.onreadystatechange = function () {
     if (xhr.status == 200 && xhr.readyState == 4) {
       var jobStatus = xhr.responseText;
+
       jobStatus = JSON.parse(jobStatus);
+      console.log(jobStatus)
+
       var returnStatus = jobStatus["status"];
       SetProgressValue(jobStatus["progress"]);
       SetCurrentImage(jobStatus["current_image"]);
@@ -180,6 +245,42 @@ function getUser(token) {
   );
 
 }
+
+
+function updateJobList(setItems, items, job) {
+  var whereIsTheJob = 'Nowhere'
+  for (var processChild in items[0].children) {
+    if (items[0].children[processChild].key == job.jobID) {
+      whereIsTheJob = 'Processing'
+      break
+    }
+  }
+  for (var PreparedChild in items[1].children) {
+    if (items[1].children[PreparedChild].key == job.jobID) {
+      whereIsTheJob = 'Prepared Brains'
+      break
+    }
+  }
+  if (whereIsTheJob == 'Nowhere') {
+    items = AddToItems(setItems, items, job, "Processing")
+  }
+
+  if (job.current_image == job.total_images) {
+    if (whereIsTheJob == 'Processing') {
+      // remove from processing
+      processChild = items[0].children.findIndex(x => x.key == job.jobID)
+      // make processChild an int
+      processChild = parseInt(processChild)
+      items[0].children.splice(processChild, 1)
+      // items = items
+      setItems(items)
+    }
+    items = AddToItems(setItems, items, job, "Prepared Brains")
+  }
+  setItems(items)
+  return items
+}
+
 function JobProcessor(props) {
   var bucket_name = props.currentBucket;
   console.log('bucket_name: ',bucket_name)
@@ -246,45 +347,15 @@ function JobProcessor(props) {
 
 
           
-          var whereIsTheJob = 'Nowhere'
-          for (var processChild in items[0].children) {
-            if (items[0].children[processChild].key == job.jobID) {
-              whereIsTheJob = 'Processing'
-              break
-            }
-          }
-          for (var PreparedChild in items[1].children) {
-            if (items[1].children[PreparedChild].key == job.jobID) {
-              whereIsTheJob = 'Prepared Brains'
-              break
-            }
-          }
-          if (whereIsTheJob == 'Nowhere') {
-            items = AddToItems(setItems, items, job, "Processing")
-          }
-
-          if (job.current_image == job.total_images) {
-            if (whereIsTheJob == 'Processing') {
-              // remove from processing
-              processChild = items[0].children.findIndex(x => x.key == job.jobID)
-              // make processChild an int
-              processChild = parseInt(processChild)
-              items[0].children.splice(processChild, 1)
-              // items = items
-              setItems(items)
-            }
-            items = AddToItems(setItems, items, job, "Prepared Brains")
-
-
-          }
-
-          setItems(items)
+          items = updateJobList(setItems, items, job)
         }
       });
 
 
     }
   });
+
+
 
   useEffect(() => {
     getUser(props.token).then((user) => {
@@ -294,6 +365,8 @@ function JobProcessor(props) {
 
     })
     ;
+    listFinalisedBrains(bucket_name, setItems, items, props.token);
+
   }, [props.token]);
 
 
@@ -302,7 +375,7 @@ function JobProcessor(props) {
 
   useEffect(() => {
     if (CurrentJob != null) {
-      pollJobStatus(CurrentJob, SetMessage, SetProgressValue, SetCurrentImage,  SetTotalImage, SetProgressImage )
+      pollJobStatus(CurrentJob,bucket_name, SetMessage, SetProgressValue, SetCurrentImage,  SetTotalImage, SetProgressImage, props.token )
     }
     }, [CurrentJob]);
       
@@ -331,8 +404,10 @@ function JobProcessor(props) {
         <Menu
           onClick={(value) => {
             CurrentJob = value.key;
+            var keyPath = value.keyPath[1]
+            
             SetCurrentJob(CurrentJob);
-            sendMessage(JSON.stringify({ "CurrentJob": CurrentJob }));
+            sendMessage(JSON.stringify({ "CurrentJob": CurrentJob , "KeyPath": keyPath}));
           }
           }
           style={{
@@ -376,6 +451,7 @@ function AddToItems(setItems, items, job, state) {
     if (items[i].label == state) {
       if (items[i].children) {
         var newEntry = getItem(item_name, itemID, icon)
+        
         newEntry['current_image'] = job.current_image
         newEntry['total_images'] = job.total_images
         newEntry['progress'] = job.progress
