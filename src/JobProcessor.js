@@ -7,15 +7,17 @@ import React, { useEffect, useState } from "react";
 // handle imports for the websocket
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
-
+console.log(process.env.NODE_ENV)
 // handle requests for the websocket
 if (process.env.NODE_ENV === "development") {
-  const WS_URL = "ws://localhost:8083";
+  console.log("this works")
+  var WS_URL = "ws://localhost:8083";
 }
 else {
-  const WS_URL =  "ws://tif-dzi-tar-svc-test.apps.hbp.eu:8083"
+  var WS_URL =  "ws://tif-dzi-tar-svc-test.apps.hbp.eu:8083"
 }
 
+console.log("WS_URL: ", WS_URL)
 
 
 

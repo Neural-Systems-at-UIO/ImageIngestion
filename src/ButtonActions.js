@@ -228,7 +228,7 @@ function getNewFile(file, accepted_types) {
   return newFile;
 }
 export function ListBucketFiles(setFiles, bucket_name, folder_name, token) {
-  console.log
+  console.log(process.env.NODE_ENV)
   const xhr = new XMLHttpRequest();
   if (process.env.NODE_ENV === "development") {
     var target_url = process.env.REACT_APP_DEV_URL;
