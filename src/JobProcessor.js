@@ -9,7 +9,14 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 
 
 // handle requests for the websocket
-const WS_URL = "ws://localhost:8083";
+if (process.env.NODE_ENV === "development") {
+  const WS_URL = "ws://localhost:8083";
+}
+else {
+  const WS_URL =  "ws://tif-dzi-tar-svc-test.apps.hbp.eu:8083"
+}
+
+
 
 
 
@@ -257,28 +264,18 @@ function JobProcessor(props) {
           if (job.current_image == job.total_images) {
             if (whereIsTheJob == 'Processing') {
               // remove from processing
-              console.log('removing from processing')
-              console.log(items[0].children)
               processChild = items[0].children.findIndex(x => x.key == job.jobID)
               // make processChild an int
               processChild = parseInt(processChild)
-              console.log(processChild+1)
               items[0].children.splice(processChild, 1)
-              console.log('bam')
-              console.log(items[0].children)
               // items = items
               setItems(items)
             }
             items = AddToItems(setItems, items, job, "Prepared Brains")
 
-            // skip = true
 
           }
 
-          // else {
-          //     if (job.jobID)
-          //     items = AddToItems(setItems, items, job, "Processing")
-          //   }
           setItems(items)
         }
       });

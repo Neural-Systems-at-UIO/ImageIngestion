@@ -97,7 +97,7 @@ function GetUser(token) {
     })
     .catch(function (error) {
       // ;
-      console.log(error)
+      // console.log(error)
       reject(error);
     }
     );
@@ -120,7 +120,7 @@ app.get("/getuser", function (req, res) {
   )
   .catch(function (error) {
     // ;
-    console.log(error)
+    // console.log(error)
 
 });
 });
@@ -424,8 +424,14 @@ function updateJob(jobID, status, progress) {
     }
   });
   
-  
+
+
 }
+function getFinishedJobsFromBucket(bucketName, token) {
+
+}
+
+
 
 
 function checkForRunningJobsFromBucket(bucketName, res) {
@@ -586,6 +592,10 @@ function getUploadLink(bucketName, file_name, token) {
   
 function curlToBucket(target_url, file_name, jobID, proj_file) {
   // save output to runningJobs folder
+  console.log('curling to bucket')
+  console.log(target_url)
+  console.log(file_name)
+  console.log(jobID)
   strip_file_name = file_name.split(".")[0];
   if (proj_file) {
     
@@ -596,11 +606,14 @@ function curlToBucket(target_url, file_name, jobID, proj_file) {
 
     var cmd = `curl -X PUT -T runningJobs/${jobID}/${strip_file_name}/${file_name} "${target_url}"`;
   }
+  console.log(cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 
 function uploadToBucket(bucketName, file_name, token, jobID, proj_file) {
-  
+  console.log('uploading to bucket')
+  console.log(bucketName)
+  console.log(file_name)
   return getUploadLink(bucketName, file_name, token).then(function (response) {
     return curlToBucket(response.data.url, file_name, jobID, proj_file);
   })
@@ -645,7 +658,11 @@ function zipDZI(filename, jobID) {
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 
-
+function writeEmptyFile(filename, jobID) {
+  var strip_file_name = filename.split(".")[0];
+  var cmd = `touch runningJobs/${jobID}/${filename}`;
+  return exec(cmd, { maxBuffer: 1024 * 500 });
+}
 
 function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
   return new Promise(function (resolve, reject) {
@@ -765,10 +782,19 @@ function saveJobMetaData(jobID, token) {
   var strip_file_name = fileName.split(".")[0];
   var jobMetadataFile = `${strip_file_name}.json`;
   fs.writeFileSync(`runningJobs/${jobID}/${jobMetadataFile}` , jobMetadataString);
+  fs.writeFileSync(`runningJobs/${jobID}/${strip_file_name}.waln` , {'atlas':'mouse'});
   // upload jobMetadata.json to bucket
   var target_bucket =  `${jobMetadata.bucketName}/.nesysWorkflowFiles/Metadata/`
-  
+  console.log(jobMetadataFile)
+  console.log(`${strip_file_name}.waln`)
   uploadToBucket(target_bucket, jobMetadataFile, token, jobID, true);
+  var target_bucket =  `${jobMetadata.bucketName}/.nesysWorkflowFiles/alignmentJsons/`
+  uploadToBucket(target_bucket, `${strip_file_name}.waln`, token, jobID, true);
+  if (RunningJobs[jobID]['current_image'] == RunningJobs[jobID]['total_images']) {
+    
+    delete RunningJobs[jobID]
+  }
+
 }
 async function convert_list_of_tiffs_to_tarDZI(
   bucketName,
