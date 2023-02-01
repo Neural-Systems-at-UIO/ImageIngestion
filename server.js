@@ -48,38 +48,11 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const wsProxy = createProxyMiddleware({ target: 'ws://localhost:8083', ws: true, changeOrigin: true});
 app.use('/ws',wsProxy );
 
-// var wss = new WebSocket.Server({
-//   port:8083,
-//   path: '/ws'
-// })
-  
 
-// if (process.env.NODE_ENV === "production") {
-//   var wss = new WebSocket.Server({
-//     server: server
-//   })
+var wss = new WebSocket.Server({
+  port: 8083
+})
   
-// }
-// if (process.env.NODE_ENV === "production") {
-//   var wss = new WebSocket.Server({
-//     port: 8083
-//   })
-  
-// }
-
-// if (process.env.NODE_ENV === "production") {
-  var wss = new WebSocket.Server({
-    port: 8083
-  })
-  
-// }
-
-// if (process.env.NODE_ENV === "production") {
-//   var wss = new WebSocket.Server({
-//     port: 8083
-//   })
-  
-// }
 
 
 
@@ -293,7 +266,7 @@ app.use(express.static("build"));
 const final_server = app.listen(port, ip, () => {});
 
 // if (process.env.NODE_ENV === "production") {
-  final_server.on('upgrade', wsProxy.upgrade); // <-- subscribe to http 'upgrade'
+final_server.on('upgrade', wsProxy.upgrade); // <-- subscribe to http 'upgrade'
 
 
 app.get("/jobStatus", function (req, res) {
