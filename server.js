@@ -142,7 +142,7 @@ function GetUser(token) {
     })
     .catch(function (error) {
       // ;
-      // console.log(error)
+      console.log(error)
       reject(error);
     }
     );
@@ -822,6 +822,8 @@ function createJobMetadata(jobID, bucketName, brainID, file_list, token) {
 function updateJobMetadata(jobID, file_list, jobMetadata, token) {
   for (i in file_list) {
     file = file_list[i];
+    console.log('-------------------------------------')
+    console.log("file: " + file);
     var cmd = `pwd`;
     var pwd = execSync(cmd).toString().trim();
     
@@ -845,18 +847,17 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
 
     // get image extension
     var imageExtension = file.split(".")[1];
-    for (i in file_list) {
-      file = file_list[i];
-      // print the present working directory
-      jobMetadata.file_list[file] = {
-        imageWidth: imageWidth,
-        imageHeight: imageHeight,
-        fileSize: fileSize,
-        imageExtension: imageExtension,
-        channelFormat: numChannels,
-        bitDepth: bitDepth
-      };
-  }
+
+    // print the present working directory
+    jobMetadata.file_list[file] = {
+      imageWidth: imageWidth,
+      imageHeight: imageHeight,
+      fileSize: fileSize,
+      imageExtension: imageExtension,
+      channelFormat: numChannels,
+      bitDepth: bitDepth
+    };
+  
   }
   RunningJobs[jobID].jobMetadata = jobMetadata;
   

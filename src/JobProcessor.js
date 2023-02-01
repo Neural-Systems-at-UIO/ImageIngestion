@@ -11,7 +11,14 @@ console.log(process.env.NODE_ENV)
 // websocket is on a middleware server with the address http://localhost:8080/websocket
 // this is the address of the websocket server
 
-var WS_URL = process.env.REACT_APP_WS_URL;
+
+if (process.env.NODE_ENV === "development") {
+  var WS_URL = process.env.REACT_APP_WS_URL;
+}
+else {
+
+  var WS_URL = '/ws'
+}
 
 console.log(WS_URL)
 
@@ -354,6 +361,7 @@ function JobProcessor(props) {
 
 
   useEffect(() => {
+    if (props.token != null) {
     getUser(props.token).then((user) => {
       var user = user.data
       user.CurrentBucket = bucket_name
@@ -362,8 +370,9 @@ function JobProcessor(props) {
     })
     ;
     listFinalisedBrains(bucket_name, setItems, items, props.token);
-
+  }
   }, [props.token]);
+  
 
 
 
@@ -395,7 +404,7 @@ function JobProcessor(props) {
 
         <CreateBrain />
 
-        <div style={{ "overflowY": scroll, "maxHeight": "70vh", overflow: 'scroll' }}>
+        <div style={{ "overflowY": scroll, "maxHeight": "27vh", overflow: 'scroll' }}>
 
         <Menu
           onClick={(value) => {
