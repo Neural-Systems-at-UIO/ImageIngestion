@@ -38,7 +38,7 @@
   "scripts": {
     "dev": "(NODE_ENV=development java='jdk-19.0.2/bin/java' nodemon server.js) & (PORT=8081 HTTPS=true  react-scripts start)",
     "dev-react": "PORT=8081 HTTPS=true react-scripts start",
-    "start": "NODE_ENV=production java='~/jdk-19.0.2/bin/java' node --experimental-modules server.js",
+    "start": "NODE_ENV=production java='~/jdk-19.0.2/bin/java' nodemon --experimental-modules server.js",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "postinstall": "./PostInstall.sh",

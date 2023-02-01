@@ -275,6 +275,11 @@ function updateJobList(setItems, items, job) {
       // make processChild an int
       processChild = parseInt(processChild)
       items[0].children.splice(processChild, 1)
+     
+      // we no longer need to look for jobs in server with the uuid and instead switch to checking the bucket for the brainid
+      job.jobID = job.brainID
+        
+    
       // items = items
       setItems(items)
     }
@@ -301,6 +306,7 @@ function JobProcessor(props) {
   const [ProgressImage, SetProgressImage] = useState(0);
   const [TotalImage, SetTotalImage] = useState(0);
   const [CurrentImage, SetCurrentImage] = useState(0);
+  const [jobUpdateVar, setJobUpdateVar] = useState(false);
 
   var CurrentJob = props.CurrentJob;
   var SetCurrentJob = props.SetCurrentJob;
@@ -343,22 +349,23 @@ function JobProcessor(props) {
               (job.current_image / job.total_images) ;
             SetProgressImage(progressImages * 100);
             SetMessage(job.status);
-            // if (returnStatus == "Done") {
-            //   returnStatus = "";
-              
-            // }
+
           }
 
-
+          setJobUpdateVar(job)
           
-          items = updateJobList(setItems, items, job)
         }
       });
 
 
     }
   });
-
+  useEffect(() => {
+    if (jobUpdateVar != false){
+    console.log('runnign effect')
+    items = updateJobList(setItems, items, jobUpdateVar)
+    }
+  }, [jobUpdateVar])
 
 
   useEffect(() => {
@@ -535,6 +542,7 @@ function checkForRunningJobs(items, setItems, bucket_name) {
           if (jobs[i].current_image == jobs[i].total_images) {
             // remove item from processing
             items[0].children.splice(j, 1)
+            // jobs[i].jobID = jobs[i].brainID
 
             items = AddToItems(setItems, items, jobs[i], "Prepared Brains")
 
