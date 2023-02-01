@@ -20,8 +20,8 @@ if (process.env.NODE_ENV === "production") {
   var app = express();
 }
 else {
-  var app = require("https-localhost")();
-  // var app = express();
+  // var app = require("https-localhost")();
+  var app = express();
 }
 
 
@@ -48,10 +48,10 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const wsProxy = createProxyMiddleware({ target: 'ws://localhost:8083', ws: true, changeOrigin: true});
 app.use('/ws',wsProxy );
 
-var wss = new WebSocket.Server({
-  port:8083,
-  path: '/ws'
-})
+// var wss = new WebSocket.Server({
+//   port:8083,
+//   path: '/ws'
+// })
   
 
 // if (process.env.NODE_ENV === "production") {
@@ -67,12 +67,12 @@ var wss = new WebSocket.Server({
   
 // }
 
-if (process.env.NODE_ENV === "production") {
+// if (process.env.NODE_ENV === "production") {
   var wss = new WebSocket.Server({
-    server: server
+    port: 8083
   })
   
-}
+// }
 
 // if (process.env.NODE_ENV === "production") {
 //   var wss = new WebSocket.Server({
@@ -292,9 +292,9 @@ app.use(function (req, res, next) {
 app.use(express.static("build"));
 const final_server = app.listen(port, ip, () => {});
 
-if (process.env.NODE_ENV === "production") {
+// if (process.env.NODE_ENV === "production") {
   final_server.on('upgrade', wsProxy.upgrade); // <-- subscribe to http 'upgrade'
-} 
+
 
 app.get("/jobStatus", function (req, res) {
   var jobID = req.query.jobID;
@@ -619,7 +619,7 @@ function DownloadFromBucket(bucketName, file_name, token, jobID) {
 function createPyramid(file_name, jobID) {
   // updateJob(jobID, "Converting to DZI", 30);
   strip_file_name = file_name.split(".")[0];
-  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -o  runningJobs/${jobID}/${strip_file_name}/ & `;
+  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -o -icr 0.01  runningJobs/${jobID}/${strip_file_name}/ & `;
   console.log(cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
