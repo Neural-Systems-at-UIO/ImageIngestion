@@ -8,16 +8,12 @@ import React, { useEffect, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
 
 console.log(process.env.NODE_ENV)
-// handle requests for the websocket
-if (process.env.NODE_ENV === "development") {
-  console.log("this works")
-  var WS_URL = "ws://localhost:8083";
-}
-else {
-  var WS_URL =  ":8083"
-}
+// websocket is on a middleware server with the address http://localhost:8080/websocket
+// this is the address of the websocket server
 
-console.log("WS_URL: ", WS_URL)
+var WS_URL = process.env.REACT_APP_WS_URL;
+
+console.log(WS_URL)
 
 
 
@@ -312,7 +308,7 @@ function JobProcessor(props) {
     getWebSocket,
   } = useWebSocket(WS_URL , {
     onOpen: () => {
-      console.log('opened')
+      console.log('opened websocket')
       // add a listener to the websocket
       getWebSocket().addEventListener("message", (event) => {
         console.log('event')

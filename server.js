@@ -21,6 +21,7 @@ if (process.env.NODE_ENV === "production") {
 }
 else {
   var app = require("https-localhost")();
+  // var app = express();
 }
 
 
@@ -39,11 +40,54 @@ const http = require('http');
 const server = http.createServer();
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({
-  port: 8083
+
+// reverse proxy so that the webSocket can be accessed on the same port as the server
+const { createProxyMiddleware } = require('http-proxy-middleware');
+
+// use create proxy middleware to create a proxy to the webSocket server
+const wsProxy = createProxyMiddleware({ target: 'ws://localhost:8083', ws: true, changeOrigin: true});
+app.use('/ws',wsProxy );
+
+var wss = new WebSocket.Server({
+  port:8083,
+  path: '/ws'
 })
+  
+
+// if (process.env.NODE_ENV === "production") {
+//   var wss = new WebSocket.Server({
+//     server: server
+//   })
+  
+// }
+// if (process.env.NODE_ENV === "production") {
+//   var wss = new WebSocket.Server({
+//     port: 8083
+//   })
+  
+// }
+
+if (process.env.NODE_ENV === "production") {
+  var wss = new WebSocket.Server({
+    server: server
+  })
+  
+}
+
+// if (process.env.NODE_ENV === "production") {
+//   var wss = new WebSocket.Server({
+//     port: 8083
+//   })
+  
+// }
 
 
+
+console.log('begin options..........')
+
+console.log(wss.options)
+
+console.log('end options..........')
 
 
 
@@ -84,7 +128,7 @@ app.get("/", function (req, res) {
 
 
 function GetUser(token) {
-  console.log('trying with token: ' + token)
+  // console.log('trying with token: ' + token)
   return new Promise((resolve, reject) => {
     requestURL = `https://core.kg.ebrains.eu/v3/users/me`;
     axios.get(requestURL, {
@@ -246,7 +290,11 @@ app.use(function (req, res, next) {
   next();
 });
 app.use(express.static("build"));
-app.listen(port, ip, () => {});
+const final_server = app.listen(port, ip, () => {});
+
+if (process.env.NODE_ENV === "production") {
+  final_server.on('upgrade', wsProxy.upgrade); // <-- subscribe to http 'upgrade'
+} 
 
 app.get("/jobStatus", function (req, res) {
   var jobID = req.query.jobID;
@@ -340,6 +388,7 @@ function curl_and_save(bucketName, file_name) {
 
 
 wss.on('connection', function connection(ws) {
+  console.log('connected')
   var message = JSON.stringify({message: 'connected'});
   console.log('sending.................................................')
 
