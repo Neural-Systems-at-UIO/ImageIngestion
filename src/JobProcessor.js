@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === "development") {
 }
 else {
 
-  var WS_URL = "ws://tif-dzi-tar-svc-test.apps.hbp.eu" + '/ws'
+  var WS_URL = "wss://tif-dzi-tar-svc-test.apps.hbp.eu" + '/ws'
 }
 
 console.log(WS_URL)
@@ -252,7 +252,6 @@ function getUser(token) {
 
 function updateJobList(setItems, items, job) {
   var whereIsTheJob = 'Nowhere'
-  console.log('items', items)
   for (var processChild in items[0].children) {
     if (items[0].children[processChild].key == job.jobID) {
       whereIsTheJob = 'Processing'
@@ -281,6 +280,7 @@ function updateJobList(setItems, items, job) {
     }
     items = AddToItems(setItems, items, job, "Prepared Brains")
   }
+  console.log('before we set')
   setItems(items)
   return items
 }
