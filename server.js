@@ -348,7 +348,7 @@ function image_to_dzi(image) {
   var cmd =
     "java -jar pyramidio/pyramidio-cli-1.1.4.jar -i " +
     image +
-    " -tf jpg  -o . & ";
+    " -tf png  -o . & ";
 
   promise = exec(cmd, function (error, stdout, stderr) {});
   return promise;
@@ -619,7 +619,7 @@ function DownloadFromBucket(bucketName, file_name, token, jobID) {
 function createPyramid(file_name, jobID) {
   // updateJob(jobID, "Converting to DZI", 30);
   strip_file_name = file_name.split(".")[0];
-  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf jpg  -o  runningJobs/${jobID}/${strip_file_name}/ & `;
+  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -o  runningJobs/${jobID}/${strip_file_name}/ & `;
   console.log(cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }

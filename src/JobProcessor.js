@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === "development") {
 }
 else {
 
-  var WS_URL = process.env.REACT_APP_PROD_URL + '/ws'
+  var WS_URL = "ws://tif-dzi-tar-svc-test.apps.hbp.eu" + '/ws'
 }
 
 console.log(WS_URL)
@@ -252,6 +252,7 @@ function getUser(token) {
 
 function updateJobList(setItems, items, job) {
   var whereIsTheJob = 'Nowhere'
+  console.log('items', items)
   for (var processChild in items[0].children) {
     if (items[0].children[processChild].key == job.jobID) {
       whereIsTheJob = 'Processing'
