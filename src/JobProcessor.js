@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === "development") {
 }
 else {
 
-  var WS_URL = '/ws'
+  var WS_URL = process.env.REACT_APP_PROD_URL + '/ws'
 }
 
 console.log(WS_URL)
