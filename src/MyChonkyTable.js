@@ -39,13 +39,25 @@ const CreateBrainFromFiles = defineFileAction({
   });
   
 
+  const UploadFolder = defineFileAction({
+    id: "UploadFolder",
+    requiresSelection: false,
+    button: {
+      name: "UploadFolder",
+      toolbar: true,
+    },
+  });
+  
+
+
 
 
   const myFileActions = [
     CreateBrainFromFiles,
-
     ChonkyActions.CreateFolder,
     ChonkyActions.UploadFiles,
+    UploadFolder,
+
     ChonkyActions.DownloadFiles,
     ChonkyActions.DeleteFiles,
     ChonkyActions.EnableListView,
@@ -53,8 +65,12 @@ const CreateBrainFromFiles = defineFileAction({
     ChonkyActions.ClearSelection,
   ];
   
-  const uploadFileAction = myFileActions.find(action => action.id === ChonkyActions.UploadFiles.id);
+const uploadFileAction = myFileActions.find(action => action.id === ChonkyActions.UploadFiles.id);
 uploadFileAction.button.group = "";
+const uploadFolderAction = myFileActions.find(action => action.id === UploadFolder.id);
+uploadFolderAction.button.group = "";
+uploadFolderAction.button.icon = uploadFileAction.button.icon;
+
 const downloadFileAction = myFileActions.find(action => action.id === ChonkyActions.DownloadFiles.id);
 downloadFileAction.button.group = "";
 const deleteFileAction = myFileActions.find(action => action.id === ChonkyActions.DeleteFiles.id);
@@ -133,12 +149,17 @@ function createFileChain(targetFilePath) {
     if (data.id == "upload_files") {
       // open
 
-      UploadFiles(curDirPath, setFiles, bucket_name, token);
+      UploadFiles(curDirPath, setFiles, bucket_name,false, token);
     
     }
-    if (data.id == "create_folder") {
-      AddToItems(setItems, items, 'test_new', 'Processing') 
+    if (data.id == "UploadFolder") {
+      // open
+      UploadFiles(curDirPath, setFiles, bucket_name,true, token);
+    
     }
+    // if (data.id == "create_folder") {
+    //   AddToItems(setItems, items, 'test_new', 'Processing') 
+    // }
     if (data.id == "download_files") {
       DownloadFiles(data, bucket_name, token);
     }
@@ -168,10 +189,10 @@ function createFileChain(targetFilePath) {
       } else {
         var target_url = process.env.REACT_APP_PROD_URL;
       }
-      
+      console.log("CurDIRPath: " + curDirPath);
       xhr.open(
         "GET",
-        `${target_url}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}`,
+        `${target_url}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`,
         true
       );
       // set token to header
@@ -214,8 +235,16 @@ function createFileChain(targetFilePath) {
         id="fileUpload"
         multiple="true"
  
-        // accept directory
 
+      />
+      {/* create directory upload button */}
+      <input
+        type="file"
+        style={{ display: "none" }}
+        id="folderUpload"
+        webkitdirectory="true"
+        directory="true"
+        multiple="true"
       />
  
 

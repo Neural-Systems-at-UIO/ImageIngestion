@@ -18,6 +18,11 @@ function App() {
   const urlParams = new URLSearchParams(window.location.search);
   console.log("urlParams")
   console.log(urlParams)
+  // check if url includes ebrainsworkbench
+  // var url = window.location.href;
+
+  // if (url.includes("ebrainsworkbench")){
+    // get the state from the url
   var bucket_state = urlParams.get("state");
   // decode url
   bucket_state = decodeURIComponent(bucket_state)
