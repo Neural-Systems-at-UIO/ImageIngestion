@@ -23,7 +23,7 @@ function App() {
   bucket_state = decodeURIComponent(bucket_state)
   // json encode
   bucket_state = JSON.parse(bucket_state)
-  bucket_state = bucket_state["clb-bucket-id"]
+  bucket_state = bucket_state["clb-collab-id"]
   // bucket_state
   console.log(bucket_state)
   const [currentBucket, SetCurrentBucket] = useState(bucket_state);
