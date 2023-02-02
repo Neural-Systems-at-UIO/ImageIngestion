@@ -14,11 +14,22 @@ import SearchAbleDropdown from "./SearchAbleDropdown";
 function App() {
 
 
-
+  // get state from the url
+  const urlParams = new URLSearchParams(window.location.search);
+  console.log("urlParams")
+  var bucket_state = urlParams.get("state");
+  // decode url
+  bucket_state = decodeURIComponent(bucket_state)
+  // json encode
+  bucket_state = JSON.parse(bucket_state)
+  bucket_state = bucket_state["clb-bucket-id"]
+  // bucket_state
+  console.log(bucket_state)
+  const [currentBucket, SetCurrentBucket] = useState(bucket_state);
 
   const [folderChain, SetFolderChain] = useState([{ id: '/', name: 'Home', isDir: true, openable:true},]);
   var   [curDirPath, SetCurDirPath] = useState("");
-  const [currentBucket, SetCurrentBucket] = useState("space-for-testing-the-nutil-web-applicat");
+  // const [currentBucket, SetCurrentBucket] = useState("space-for-testing-the-nutil-web-applicat");
   const [CurrentJob, SetCurrentJob] = useState(null);
 
   var [token, SetToken] = useState(null);

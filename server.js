@@ -20,8 +20,8 @@ if (process.env.NODE_ENV === "production") {
   var app = express();
 }
 else {
-  // var app = require("https-localhost")();
-  var app = express();
+  var app = require("https-localhost")();
+  // var app = express();
 }
 
 
@@ -265,9 +265,9 @@ app.use(function (req, res, next) {
 app.use(express.static("build"));
 const final_server = app.listen(port, ip, () => {});
 
-// if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV === "production") {
 final_server.on('upgrade', wsProxy.upgrade); // <-- subscribe to http 'upgrade'
-
+}
 
 app.get("/jobStatus", function (req, res) {
   var jobID = req.query.jobID;
