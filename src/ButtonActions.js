@@ -48,7 +48,8 @@ export function DeleteFiles(fileActionDispatch, curDirPath, setFiles, bucket_nam
         ListBucketFiles(
           setFiles,
           bucket_name,
-          curDirPath
+          curDirPath,
+          token
         );
       } else {
         // log error
@@ -59,16 +60,31 @@ export function DeleteFiles(fileActionDispatch, curDirPath, setFiles, bucket_nam
     };
   }
 }
-export function UploadFiles(curDirPath, setFiles,bucket_name, token) {
-  const fileInput = document.getElementById("fileUpload");
+export function UploadFiles(curDirPath, setFiles,bucket_name,folder, token) {
+  if (folder == false) {
+    var fileInput = document.getElementById("fileUpload");
+  }
+  else {
+    var fileInput = document.getElementById("folderUpload");
+  }
+  console.log('curDirPath', curDirPath)
   fileInput.click();
   fileInput.addEventListener("change", (e) => {
+    console.log(fileInput)
     for (let i = 0; i < fileInput.files.length; i++) {
+      
       const file = fileInput.files[i];
       const xhr = new XMLHttpRequest();
       
       // put request to upload file
+      if (folder == false) {
       xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file.name}`, true);
+      }
+      else {
+        xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file.webkitRelativePath}`, true);
+      }
+
+      
       // add query strings
       // set a uthorization header
       xhr.setRequestHeader("Authorization", "Bearer " + token);
@@ -102,7 +118,8 @@ export function UploadFiles(curDirPath, setFiles,bucket_name, token) {
               ListBucketFiles(
                 setFiles,
                 bucket_name,
-                curDirPath
+                curDirPath,
+                token
               );
             } else {
               // log error

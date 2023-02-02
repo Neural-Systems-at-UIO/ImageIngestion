@@ -248,11 +248,12 @@ app.get("/tiffListToTarDZI", function (req, res) {
   file_list = file_list.split(",");
   var brainID = req.query.brainID;
   var token = req.headers.authorization;
-  
+  var folder_name = req.query.folderName;
+  console.log('folder_name', folder_name)
   
   
   // 
-  convert_list_of_tiffs_to_tarDZI(bucketName, file_list, token, brainID, res);
+  convert_list_of_tiffs_to_tarDZI(bucketName, file_list, token, brainID, res, folder_name);
 });
 
 app.use(function (req, res, next) {
@@ -290,7 +291,7 @@ function list_bucket_files(res, bucketname, folderName, token) {
   
   
   
-  requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}?prefix=${folderName}&limit=50&delimiter=/`;
+  requestURl = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketname}?prefix=${folderName}&limit=5000&delimiter=/`;
   // 
   axios
     .get(requestURl, {
@@ -497,7 +498,7 @@ function checkForRunningJobsFromBucket(bucketName, res) {
 }
 
 function ReadJobMetadata(bucketName, brainID, token, res) {
-  GetDownloadLink(bucketName, '.nesysWorkflowFiles/Metadata/' + brainID + ".json", token)
+  GetDownloadLink(bucketName, '.nesysWorkflowFiles/Metadata/' + brainID + ".json", token, "")
     .then(function (response) {
       // load json from response.data.url with fetch
       console.log('url: ' + response.data.url)
@@ -541,8 +542,8 @@ function respondToJobPoll(jobID, token, bucket_name, res) {
   }
 }
 
-function GetDownloadLink(bucketName, file_name, token) {
-  requestURL = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketName}/${file_name}?inline=false&redirect=false`;
+function GetDownloadLink(bucketName, file_name, token, folder_name) {
+  requestURL = `https://data-proxy.ebrains.eu/api/v1/buckets/${bucketName}/${folder_name}${file_name}?inline=false&redirect=false`;
   requestHeaders = {
     Authorization: token,
     "Content-Type": "application/json",
@@ -580,10 +581,10 @@ function copyFileInBucket(bucket_name, file_name, new_file_name, token) {
   });
 }
 
-function DownloadFromBucket(bucketName, file_name, token, jobID) {
+function DownloadFromBucket(bucketName, file_name, token, jobID, folder_name) {
   updateJob(jobID, "Downloading file", 10);
   console.log("downloading file with token: " + token + "from bucket: " + bucketName + " and file: " + file_name + "")
-  return GetDownloadLink(bucketName, file_name, token).then(function (
+  return GetDownloadLink(bucketName, file_name, token,folder_name).then(function (
     response
   ) {
     console.log('now we curl from bucket')
@@ -729,7 +730,7 @@ function writeEmptyFile(filename, jobID) {
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 
-function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
+function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID, folder_name) {
   return new Promise(function (resolve, reject) {
     var stripFileName = fileName.split(".")[0];
     var indexFile = `${stripFileName}.index`;
@@ -739,7 +740,7 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID) {
     var dziZip = `${stripFileName}.dzip`;
     var file_list = [dziZip];
     var fileNameNoPath = fileName.split("/").pop();
-    DownloadFromBucket(bucketName, fileName, token, jobID)
+    DownloadFromBucket(bucketName, fileName, token, jobID, folder_name)
       .then(() => createPyramid(fileName, jobID))
       .then(() => zipDZI(fileName, jobID))
       // .then(() => indexTar(fileName, jobID))
@@ -867,7 +868,8 @@ async function convert_list_of_tiffs_to_tarDZI(
   file_list,
   token,
   brainID,
-  res
+  res,
+  folder_name
 ) {
   file_list_length = file_list.length;
   var jobID = initJob((total_images = file_list_length), bucketName, brainID);
@@ -877,7 +879,7 @@ async function convert_list_of_tiffs_to_tarDZI(
   // loop through list of files and after the previous promise is resolved, start the next one
   for (var i = 0; i < file_list_length; i++) {
     var file_name = file_list[i];
-    await convert_tiff_to_tarDZI(bucketName, file_name, token, jobID);
+    await convert_tiff_to_tarDZI(bucketName, file_name, token, jobID, folder_name);
     // 
     // updateJob(jobID, 'Done', 100) 
     
