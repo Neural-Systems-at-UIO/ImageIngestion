@@ -88,6 +88,7 @@ app.get("/auth/", (req, res) => {
 });
 // serve index.html
 app.get("/", function (req, res) {
+  // get clb-bucket-id from the url
   // redirect to localhost:8080 on the browser
   if (process.env.NODE_ENV === "production") {
     res.sendFile(path.join(__dirname + "/index_prod.html"));

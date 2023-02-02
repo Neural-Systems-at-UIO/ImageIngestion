@@ -17,6 +17,7 @@ function App() {
   // get state from the url
   const urlParams = new URLSearchParams(window.location.search);
   console.log("urlParams")
+  console.log(urlParams)
   var bucket_state = urlParams.get("state");
   // decode url
   bucket_state = decodeURIComponent(bucket_state)
