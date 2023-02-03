@@ -97,11 +97,15 @@ function listFinalisedBrains(bucket_name, setItems, items, token) {
 
 
 function MessageBox(props) {
-  if (props.TotalImage == 0) {
+  if (props.TotalImage == props.CurrentImage && props.TotalImage != 0) {
+    var head = "Brain Created"
+  }
+  else if (props.TotalImage == 0) {
     var head = "Select Images and create your brain"
   } else {
     var head = "Creating your brain"
   }
+
   return (
     // center the content
     <div style={{
@@ -412,7 +416,7 @@ function JobProcessor(props) {
 
         <CreateBrain />
 
-        <div style={{ "overflowY": scroll, "maxHeight": "27vh", overflow: 'scroll' }}>
+        <div style={{ "overflowY": scroll, "height": "27vh", overflow: 'scroll' }}>
 
         <Menu
           onClick={(value) => {
@@ -425,7 +429,7 @@ function JobProcessor(props) {
           }
           style={{
               width: 256,
-              "minHeight":"40vh" 
+              // "minHeight":"40vh" 
           }}
           defaultSelectedKeys={['1']}
           defaultOpenKeys={['sub1', 'sub2']}
@@ -436,7 +440,12 @@ function JobProcessor(props) {
 
         </div>
       </div>
-      <div style={{}}>
+      <div style={{
+        // center the content of the div
+        // margin: "auto",
+        // width: "50%",
+        // border: "3px solid green",
+      }}>
         <MessageBox message={Message} ProgressValue={ProgressValue} SetProgressValue={SetProgressValue} ProgressImage={ProgressImage} SetProgressImage={SetProgressImage} TotalImage={TotalImage} SetTotalImage={SetTotalImage} CurrentImage={CurrentImage} SetCurrentImage={SetCurrentImage} />
       </div>
     </div>
