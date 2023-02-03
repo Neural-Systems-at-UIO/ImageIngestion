@@ -592,9 +592,20 @@ function DownloadFromBucket(bucketName, file_name, token, jobID, folder_name) {
   });
 }
 function createPyramid(file_name, jobID) {
-  // updateJob(jobID, "Converting to DZI", 30);
+  updateJob(jobID, "Converting to DZI", 30);
+  // check if file has a opacity channel
+  // if it does use png output
+  
+
+
   strip_file_name = file_name.split(".")[0];
-  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
+  var cmd = `identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+  var numChannels = execSync(cmd).toString().trim();
+  if (numChannels == "srgba") {
+    var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
+  } else {
+    var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf jpg  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
+  }
   console.log(cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
@@ -816,6 +827,7 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
     // get number of channels
     var cmd = `identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
     var numChannels = execSync(cmd).toString().trim();
+
     // get bit depth
     var cmd = `identify -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
     var bitDepth = execSync(cmd).toString().trim();
