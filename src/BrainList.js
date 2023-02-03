@@ -28,7 +28,7 @@ const BrainList = ({ items, CurrentJob, SetCurrentJob })  => {
         onClick={onClick}
         style={{
             width: 256,
-            "minHeight":"40vh" 
+            // "minHeight":"40vh" 
         }}
         defaultSelectedKeys={['1']}
         defaultOpenKeys={['sub1', 'sub2']}
