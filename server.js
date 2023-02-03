@@ -600,8 +600,9 @@ function createPyramid(file_name, jobID) {
 
 
   strip_file_name = file_name.split(".")[0];
-  var cmd = `./magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+  var cmd = `./magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
   var numChannels = execSync(cmd).toString().trim();
+  console.log('numChannels', numChannels)
   if (numChannels == "srgba") {
     var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
   } else {
