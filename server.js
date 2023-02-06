@@ -823,20 +823,20 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
     // get image resolution
     var strip_file_name = file.split(".")[0];
     // get image width, note that file could be .jpg .png .tif, etc
-    var cmd = `./identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
+    var cmd = `magick identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
     var imageWidth = execSync(cmd).toString().trim();
     // get image height
-    var cmd = `./identify -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
+    var cmd = `magick identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
     var imageHeight = execSync(cmd).toString().trim();
     // get file size
     var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
     var fileSize = execSync(cmd).toString().trim();
     // get number of channels
-    var cmd = `./identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+    var cmd = `magick identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
     var numChannels = execSync(cmd).toString().trim();
 
     // get bit depth
-    var cmd = `./identify -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+    var cmd = `magick identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
     var bitDepth = execSync(cmd).toString().trim();
 
     // get image extension
