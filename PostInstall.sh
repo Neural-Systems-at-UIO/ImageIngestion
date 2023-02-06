@@ -3,9 +3,9 @@ mkdir runningJobs
 if ["$env"]; then
     echo "local"
 else 
-    wget https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.0-61.tar.gz
-    tar -xvf 7.1.0-61.tar.gz
-    cd ImageMagick-7.1.0-61
+    wget https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.0.8-12.tar.gz
+    tar -xvf 7.0.8-12.tar.gz
+    cd ImageMagick-7.0.8-12
     ./configure --prefix=$HOME/
     make
     make install
