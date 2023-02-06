@@ -600,7 +600,7 @@ function createPyramid(file_name, jobID) {
 
 
   strip_file_name = file_name.split(".")[0];
-  var cmd = `./identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
+  var cmd = `magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
   var numChannels = execSync(cmd).toString().trim();
   console.log('numChannels', numChannels)
   if (numChannels == "srgba") {
