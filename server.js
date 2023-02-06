@@ -769,6 +769,7 @@ function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID, folder_name)
         console.log(error)
         updateJob(jobID, "Error", 0);
         ;
+
         reject(error);
       });
     copyFileInBucket(bucketName, fileName, `.nesysWorkflowFiles/originalImages/${RunningJobs[jobID].brainID}/${fileNameNoPath}`, token)
@@ -875,10 +876,12 @@ function saveJobMetaData(jobID, token) {
   uploadToBucket(target_bucket, jobMetadataFile, token, jobID, true);
   var target_bucket = `${jobMetadata.bucketName}/.nesysWorkflowFiles/alignmentJsons/`
   uploadToBucket(target_bucket, `${strip_file_name}.waln`, token, jobID, true);
-  if (RunningJobs[jobID]['current_image'] == RunningJobs[jobID]['total_images']) {
-
+  if (RunningJobs[jobID]['current_image'] == RunningJobs[jobID]['total_images']) { 
     delete RunningJobs[jobID]
-  }
+  } 
+  if ( RunningJobs[jobID].status == 'Error' ) {
+    delete RunningJobs[jobID]
+  } 
 
 }
 async function convert_list_of_tiffs_to_tarDZI(
