@@ -6,7 +6,7 @@ else
     wget https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.0-61.tar.gz
     tar -xvf 7.1.0-61.tar.gz
     cd ImageMagick-7.1.0-61
-    ./configure
+    ./configure --prefix=$HOME/
     make
     make install
 fi
