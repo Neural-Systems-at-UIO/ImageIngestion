@@ -135,11 +135,25 @@ function MessageBox(props) {
 
         <h2>{head}</h2>
         <p>{props.message}</p>
+        {/* conditionally render a button */}
+        {/* pass an argument the onclick function */}
+        {props.TotalImage == props.CurrentImage && props.TotalImage != 0 ? <Button type="primary" onClick={
+          () => {
+            openViewerInNewTab(props.CurrentBucket, props.CurrentJob)
+          }
+        }>View Brain</Button> : null}
+    
       </div>
     </div>
   );
 }
-
+function openViewerInNewTab(bucket_name, brain_id) {
+  console.log(bucket_name)
+  let viewer_url = "https://miosdv.apps-dev.hbp.eu/index.html?bucket="
+  let apiUrl = "https://tar-svc-test.apps.hbp.eu/fakebucket/?url=https://data-proxy.ebrains.eu/api/v1/buckets/" + bucket_name + "?prefix=.nesysWorkflowFiles/zippedPyramids/" + brain_id
+  // open the viewer in a new tab
+  window.open(viewer_url + apiUrl, "_blank");
+}
 // write an arrow function called clickCreateBrain that runs on button click
 function CreateBrain() {
   const click = () => {
@@ -446,7 +460,7 @@ function JobProcessor(props) {
         // width: "50%",
         // border: "3px solid green",
       }}>
-        <MessageBox message={Message} ProgressValue={ProgressValue} SetProgressValue={SetProgressValue} ProgressImage={ProgressImage} SetProgressImage={SetProgressImage} TotalImage={TotalImage} SetTotalImage={SetTotalImage} CurrentImage={CurrentImage} SetCurrentImage={SetCurrentImage} />
+        <MessageBox message={Message} ProgressValue={ProgressValue} SetProgressValue={SetProgressValue} ProgressImage={ProgressImage} SetProgressImage={SetProgressImage} TotalImage={TotalImage} SetTotalImage={SetTotalImage} CurrentImage={CurrentImage} SetCurrentImage={SetCurrentImage} CurrentBucket = {bucket_name} CurrentJob = {CurrentJob}/>
       </div>
     </div>
   );
