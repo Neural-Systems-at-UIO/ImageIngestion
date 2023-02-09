@@ -600,7 +600,13 @@ function createPyramid(file_name, jobID) {
 
 
   strip_file_name = file_name.split(".")[0];
+  // only run in prod
+  if (process.env.NODE_ENV == "production") {
   var cmd = `magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
+  } else {
+    var cmd = `identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
+  }
+
   var numChannels = execSync(cmd).toString().trim();
   console.log('numChannels', numChannels)
   if (numChannels == "srgba") {
@@ -823,21 +829,41 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
     // get image resolution
     var strip_file_name = file.split(".")[0];
     // get image width, note that file could be .jpg .png .tif, etc
-    var cmd = `magick identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
-    var imageWidth = execSync(cmd).toString().trim();
-    // get image height
-    var cmd = `magick identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
-    var imageHeight = execSync(cmd).toString().trim();
-    // get file size
-    var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
-    var fileSize = execSync(cmd).toString().trim();
-    // get number of channels
-    var cmd = `magick identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-    var numChannels = execSync(cmd).toString().trim();
+    // only run on prod
+    if (process.env.NODE_ENV == "production") {
+      var cmd = `magick identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var imageWidth = execSync(cmd).toString().trim();
+      // get image height
+      var cmd = `magick identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var imageHeight = execSync(cmd).toString().trim();
+      // get file size
+      var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
+      var fileSize = execSync(cmd).toString().trim();
+      // get number of channels
+      var cmd = `magick identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var numChannels = execSync(cmd).toString().trim();
 
-    // get bit depth
-    var cmd = `magick identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-    var bitDepth = execSync(cmd).toString().trim();
+      // get bit depth
+      var cmd = `magick identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var bitDepth = execSync(cmd).toString().trim();
+    }
+    else {
+      var cmd = `identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var imageWidth = execSync(cmd).toString().trim();
+      // get image height
+      var cmd = `identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var imageHeight = execSync(cmd).toString().trim();
+      // get file size
+      var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
+      var fileSize = execSync(cmd).toString().trim();
+      // get number of channels
+      var cmd = `identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var numChannels = execSync(cmd).toString().trim();
+
+      // get bit depth
+      var cmd = `identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var bitDepth = execSync(cmd).toString().trim();
+    }
 
     // get image extension
     var imageExtension = file.split(".")[1];
