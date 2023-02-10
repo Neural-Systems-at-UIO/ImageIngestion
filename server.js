@@ -602,12 +602,17 @@ function createPyramid(file_name, jobID) {
   strip_file_name = file_name.split(".")[0];
   // only run in prod
   if (process.env.NODE_ENV == "production") {
-  var cmd = `magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
+    var cmd = `magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
   } else {
     var cmd = `identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
   }
 
-  var numChannels = execSync(cmd).toString().trim();
+  if (process.env.NODE_ENV == "production" &&  file_name.split(".")[1] == "tif") {
+    var numchannels = 'unknown due to openshift not supporting tiff'
+  } 
+  else {
+   var numChannels = execSync(cmd).toString().trim();
+  }
   console.log('numChannels', numChannels)
   if (numChannels == "srgba") {
     var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
@@ -830,24 +835,9 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
     var strip_file_name = file.split(".")[0];
     // get image width, note that file could be .jpg .png .tif, etc
     // only run on prod
-    if (process.env.NODE_ENV == "production") {
-      var cmd = `magick identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var imageWidth = execSync(cmd).toString().trim();
-      // get image height
-      var cmd = `magick identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var imageHeight = execSync(cmd).toString().trim();
-      // get file size
-      var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
-      var fileSize = execSync(cmd).toString().trim();
-      // get number of channels
-      var cmd = `magick identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var numChannels = execSync(cmd).toString().trim();
+    if (process.env.NODE_ENV == "development") {
 
-      // get bit depth
-      var cmd = `magick identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var bitDepth = execSync(cmd).toString().trim();
-    }
-    else {
+      
       var cmd = `identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
       var imageWidth = execSync(cmd).toString().trim();
       // get image height
@@ -863,6 +853,35 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
       // get bit depth
       var cmd = `identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
       var bitDepth = execSync(cmd).toString().trim();
+    }
+    else {
+      // only run if image is not tiff
+      if (file.split(".")[1] != "tif") {
+        var cmd = `magick identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
+        var imageWidth = execSync(cmd).toString().trim();
+        // get image height
+        var cmd = `magick identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
+        var imageHeight = execSync(cmd).toString().trim();
+        // get file size
+        var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
+        var fileSize = execSync(cmd).toString().trim();
+        // get number of channels
+        var cmd = `magick identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+        var numChannels = execSync(cmd).toString().trim();
+
+        // get bit depth
+        var cmd = `magick identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+        var bitDepth = execSync(cmd).toString().trim();
+      }
+      else {
+        var imageWidth = 'uknown due to openshift not having tiff support'
+        var imageHeight = 'uknown due to openshift not having tiff support'
+        var fileSize = 'uknown due to openshift not having tiff support'
+        var numChannels = 'uknown due to openshift not having tiff support'
+        var bitDepth = 'uknown due to openshift not having tiff support'
+      }
+
+
     }
 
     // get image extension
