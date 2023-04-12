@@ -15,7 +15,7 @@ function App() {
 
 
   // get state from the url
-  const urlParams = new URLSearchParams(window.location.search);
+  var urlParams = new URLSearchParams(window.location.search);
   console.log("urlParams")
   console.log(urlParams)
   // check if url includes ebrainsworkbench
@@ -23,15 +23,18 @@ function App() {
 
   // if (url.includes("ebrainsworkbench")){
     // get the state from the url
-  var bucket_state = urlParams.get("state");
+  var init_bucket_state = urlParams.get("state");
   // decode url
-  bucket_state = decodeURIComponent(bucket_state)
-  // json encode
-  bucket_state = JSON.parse(bucket_state)
-  bucket_state = bucket_state["clb-collab-id"]
-  // bucket_state
-  console.log(bucket_state)
+  if (init_bucket_state !== null){
+    var bucket_state = decodeURIComponent(init_bucket_state)
+    // json encode
+    bucket_state = JSON.parse(bucket_state)
+    bucket_state = bucket_state["clb-collab-id"]
+    // bucket_state
+    console.log(bucket_state)
+  }
   const [currentBucket, SetCurrentBucket] = useState(bucket_state);
+
 
   const [folderChain, SetFolderChain] = useState([{ id: '/', name: 'Home', isDir: true, openable:true},]);
   var   [curDirPath, SetCurDirPath] = useState("");
@@ -59,6 +62,9 @@ function App() {
       curDirPath,
       token
     )
+    })
+    .then(() => {
+      window.history.pushState({}, document.title, "/clb-collab-id=" + currentBucket );
     })
     .catch((err) => {
       

@@ -9,8 +9,9 @@ export function getToken(current_token) {
 
     const code = urlParams.get("code");
 
+
     // clear url
-    //   window.history.pushState({}, document.title, "/" );
+    // window.history.pushState({}, document.title, "/" );
     var redirect_uri = process.env.REACT_APP_URL;
 
     if (process.env.NODE_ENV === "development") {
