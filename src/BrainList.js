@@ -26,10 +26,6 @@ const BrainList = ({ items, CurrentJob, SetCurrentJob })  => {
     return (
         <Menu
         onClick={onClick}
-        style={{
-            width: 256,
-            // "minHeight":"40vh" 
-        }}
         defaultSelectedKeys={['1']}
         defaultOpenKeys={['sub1', 'sub2']}
         mode="inline"

@@ -36,6 +36,7 @@ function App() {
   const [currentBucket, SetCurrentBucket] = useState(bucket_state);
 
 
+  
   const [folderChain, SetFolderChain] = useState([{ id: '/', name: 'Home', isDir: true, openable:true},]);
   var   [curDirPath, SetCurDirPath] = useState("");
   // const [currentBucket, SetCurrentBucket] = useState("space-for-testing-the-nutil-web-applicat");

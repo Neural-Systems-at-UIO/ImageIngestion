@@ -5,6 +5,7 @@ import { setChonkyDefaults , ChonkyActions, defineFileAction,   FileBrowser,
 import { ChonkyIconFA } from "chonky-icon-fontawesome";
 import React, { useEffect, useState } from "react";
 import { ListBucketFiles, UploadFiles, DownloadFiles, DeleteFiles } from "./ButtonActions";
+import "./MyChonkyTable.css";
 // import a dropdown menu from antd
 
 
@@ -225,20 +226,19 @@ function createFileChain(targetFilePath) {
     }
     
     return (
-        <div style = {{'height': '70vh'}}>
+        <div id="uploadContainer">
         <input
-        type="file"     
-        style={{ display: "none" }}
-        id="fileUpload"
+        type="file"  
+        id="hiddenFileUploadButton"   
+        // style={{ display: "none" }}
         multiple="true"
  
 
       />
       {/* create directory upload button */}
       <input
+        id="hiddenFolderUploadButton"
         type="file"
-        style={{ display: "none" }}
-        id="folderUpload"
         webkitdirectory="true"
         directory="true"
         multiple="true"

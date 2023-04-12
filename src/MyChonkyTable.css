@@ -1,0 +1,12 @@
+
+#uploadContainer {
+    height: 70vh;
+    overflow-y: auto;
+  }
+  
+#hiddenFolderUploadButton {
+    display: none;
+}
+#hiddenFileUploadButton {
+    display: none;
+}

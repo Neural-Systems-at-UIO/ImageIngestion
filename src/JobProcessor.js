@@ -1,4 +1,5 @@
 
+import "./JobProcessor.css";
 import { LoadingOutlined, CheckOutlined } from '@ant-design/icons';
 
 import { Progress, Button, Menu, Popover, Input } from "antd";
@@ -56,7 +57,7 @@ function listFinalisedBrains(bucket_name, setItems, items, token) {
           var data = response.objects[i].name.split('/')
           // get last element
           var brainID = data[data.length - 1].split('.')[0]
-          var array = {'brainID': brainID, 'jobID': brainID, 'status': 'finalised', 'progress': 100, 'total_images': 0, 'current_image': 0}
+          var array = { 'brainID': brainID, 'jobID': brainID, 'status': 'finalised', 'progress': 100, 'total_images': 0, 'current_image': 0 }
           items = AddToItems(setItems, items, array, 'Prepared Brains')
         }
       }
@@ -86,7 +87,7 @@ function listFinalisedBrains(bucket_name, setItems, items, token) {
 //     if (items[i].label == state) {
 //       if (items[i].children) {
 //         var newEntry = getItem(item_name, itemID, icon)
-        
+
 //         newEntry['current_image'] = job.current_image
 //         newEntry['total_images'] = job.total_images
 //         newEntry['progress'] = job.progress
@@ -103,45 +104,49 @@ function MessageBox(props) {
   } else {
     var head = "Creating your brain"
   }
-
+  // run after render
+  useEffect(() => {
+    const jobScrollColumn = document.querySelector('#jobScrollColumn');
+    const windowHeight = window.innerHeight; // get the height of the viewport
+    const jobScrollColumnOffsetTop = jobScrollColumn.offsetTop; // get the offset top of the element
+    const availableSpace = windowHeight - jobScrollColumnOffsetTop; // calculate the available space
+    jobScrollColumn.style.maxHeight = availableSpace + 'px'; // set the max-height of the element
+  }, []);
   return (
     // center the content
-    <div style={{
-      display: "flex",
-
-      padding: "5rem 0rem 0rem 5rem",
-
-    }}>
+    <div id="MessageBox">
       <Progress
+      id="Progress"
         type="circle"
         percent={props.ProgressImage}
-        style={{ padding: "0.5rem" }}
         format={() => `${props.CurrentImage}/${props.TotalImage}`}
       ></Progress>
-      <Progress
+      <Progress id="Progress"
         type="circle"
         percent={props.ProgressValue}
-        style={{ padding: "0.5rem" }}
       ></Progress>
       <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          padding: "0.5rem",
-        }}
+      id="currentStatus"
+      
       >
 
         <h2>{head}</h2>
+        <div id="messageAndViewer">
         <p>{props.message}</p>
-        {/* conditionally render a button */}
+                {/* conditionally render a button */}
         {/* pass an argument the onclick function */}
-        {props.TotalImage == props.CurrentImage && props.TotalImage != 0 ? <Button type="primary" onClick={
+        {props.TotalImage == props.CurrentImage && props.TotalImage != 0 ? <Button           id="viewBrain"
+
+type="primary" onClick={
           () => {
             openViewerInNewTab(props.CurrentBucket, props.CurrentJob)
           }
         }>View Brain</Button> : null}
-    
+        </div>
+
       </div>
+
+      
     </div>
   );
 }
@@ -179,10 +184,10 @@ function CreateBrain() {
   }
 
   var title = "Enter Id for Brain"
-  var content = <div style={{ display: "flex" }}><Input id="brainIDInput" placeholder="Enter Id for Brain" onClick={inputClick} />&nbsp; <Button type="primary" onClick={click}>OK</Button></div>
+  var content = <div id="inputID"><Input id="brainIDInput" placeholder="Enter Id for Brain" onClick={inputClick} />&nbsp; <Button type="primary" onClick={click}>OK</Button></div>
   return <Popover placement="topLeft" trigger="click" content={content} title={title}>
-    <Button type="primary" style={{ width: '100%' }}>
-      <span style={{ 'textShadow': '0px 0px 9px white' }}>🧠</span>&nbsp; &nbsp; Create Brain From Selection
+    <Button type="primary">
+      <span id="brainEmoji">🧠</span>&nbsp; &nbsp; Create Brain From Selection
     </Button>
   </Popover>;
 }
@@ -219,7 +224,7 @@ function pollJobStatus(
       SetCurrentImage(jobStatus["current_image"]);
       SetTotalImage(jobStatus["total_images"]);
       var progressImages =
-        (jobStatus["current_image"] / jobStatus["total_images"]) ;
+        (jobStatus["current_image"] / jobStatus["total_images"]);
       SetProgressImage(progressImages * 100);
       SetMessage(jobStatus["status"]);
       if (returnStatus == "Done") {
@@ -283,11 +288,11 @@ function updateJobList(setItems, items, job) {
       // make processChild an int
       processChild = parseInt(processChild)
       items[0].children.splice(processChild, 1)
-     
+
       // we no longer need to look for jobs in server with the uuid and instead switch to checking the bucket for the brainid
       job.jobID = job.brainID
-        
-    
+
+
       // items = items
       setItems(items)
     }
@@ -300,7 +305,7 @@ function updateJobList(setItems, items, job) {
 
 function JobProcessor(props) {
   var bucket_name = props.currentBucket;
-  console.log('bucket_name: ',bucket_name)
+  console.log('bucket_name: ', bucket_name)
   var [items, setItems] = useState([
     getItem('Processing', 'sub1', '', [
     ]
@@ -320,7 +325,7 @@ function JobProcessor(props) {
   var SetCurrentJob = props.SetCurrentJob;
   // SetCurrentJob('testing123')
   // const [user, setUser] = useState(null);
-  console.log('CurrentJob test: ',CurrentJob)
+  console.log('CurrentJob test: ', CurrentJob)
   const {
     sendMessage,
     sendJsonMessage,
@@ -328,7 +333,7 @@ function JobProcessor(props) {
     lastJsonMessage,
     readyState,
     getWebSocket,
-  } = useWebSocket(WS_URL , {
+  } = useWebSocket(WS_URL, {
     onOpen: () => {
       console.log('opened websocket')
       // add a listener to the websocket
@@ -340,13 +345,13 @@ function JobProcessor(props) {
         if (data.JobUpdate) {
           var job = data.JobUpdate;
 
-          
 
-          console.log('jobID: ',job.jobID)
+
+          console.log('jobID: ', job.jobID)
 
           console.log((job.jobID == data.CurrentJob))
 
-          console.log('CurrentJob: ',data.CurrentJob)
+          console.log('CurrentJob: ', data.CurrentJob)
 
 
           if (job.jobID == data.CurrentJob) {
@@ -354,14 +359,14 @@ function JobProcessor(props) {
             SetCurrentImage(job.current_image);
             SetTotalImage(job.total_images);
             var progressImages =
-              (job.current_image / job.total_images) ;
+              (job.current_image / job.total_images);
             SetProgressImage(progressImages * 100);
             SetMessage(job.status);
 
           }
 
           setJobUpdateVar(job)
-          
+
         }
       });
 
@@ -369,29 +374,29 @@ function JobProcessor(props) {
     }
   });
   useEffect(() => {
-    if (jobUpdateVar != false){
-    console.log('runnign effect')
-    items = updateJobList(setItems, items, jobUpdateVar)
+    if (jobUpdateVar != false) {
+      console.log('runnign effect')
+      items = updateJobList(setItems, items, jobUpdateVar)
     }
   }, [jobUpdateVar])
 
 
   useEffect(() => {
     if (props.token != null) {
-    getUser(props.token).then((user) => {
-      var user = user.data
-      user.CurrentBucket = bucket_name
-      sendMessage(JSON.stringify({ "user": user }));
+      getUser(props.token).then((user) => {
+        var user = user.data
+        user.CurrentBucket = bucket_name
+        sendMessage(JSON.stringify({ "user": user }));
 
-    })
-    ;
-  }
+      })
+        ;
+    }
   }, [props.token]);
 
   useEffect(() => {
     listFinalisedBrains(bucket_name, setItems, items, props.token);
   }, [bucket_name, props.token]);
-  
+
 
 
 
@@ -399,13 +404,13 @@ function JobProcessor(props) {
 
   useEffect(() => {
     if (CurrentJob != null) {
-      pollJobStatus(CurrentJob,bucket_name, SetMessage, SetProgressValue, SetCurrentImage,  SetTotalImage, SetProgressImage, props.token )
+      pollJobStatus(CurrentJob, bucket_name, SetMessage, SetProgressValue, SetCurrentImage, SetTotalImage, SetProgressImage, props.token)
     }
-    }, [CurrentJob]);
-      
-      
+  }, [CurrentJob]);
+
+
   useEffect(() => {
-    sendMessage(JSON.stringify({ "CurrentBucket": bucket_name}));
+    sendMessage(JSON.stringify({ "CurrentBucket": bucket_name }));
     checkForRunningJobs(items, setItems, bucket_name);
     // setInterval(
     //   checkForRunningJobs,
@@ -416,44 +421,36 @@ function JobProcessor(props) {
     // );
 
   }, [bucket_name]);
-  console.log('total images: ',TotalImage)
+  console.log('total images: ', TotalImage)
   return (
-    <div style={{ display: "flex" }}>
+    <div id="jobMenu">
       <div>
 
         <CreateBrain />
 
-        <div style={{ "overflowY": scroll, "height": "27vh", overflow: 'scroll' }}>
+        <div id="jobScrollColumn">
 
-        <Menu
-          onClick={(value) => {
-            CurrentJob = value.key;
-            var keyPath = value.keyPath[1]
-            
-            SetCurrentJob(CurrentJob);
-            sendMessage(JSON.stringify({ "CurrentJob": CurrentJob , "KeyPath": keyPath}));
-          }
-          }
-          style={{
-              width: 256,
-              // "minHeight":"40vh" 
-          }}
-          defaultSelectedKeys={['1']}
-          defaultOpenKeys={['sub1', 'sub2']}
-          mode="inline"
-          items={items}
+          <Menu
+            onClick={(value) => {
+              CurrentJob = value.key;
+              var keyPath = value.keyPath[1]
+
+              SetCurrentJob(CurrentJob);
+              sendMessage(JSON.stringify({ "CurrentJob": CurrentJob, "KeyPath": keyPath }));
+            }
+            }
+      
+            defaultSelectedKeys={['1']}
+            defaultOpenKeys={['sub1', 'sub2']}
+            mode="inline"
+            items={items}
           />
 
 
         </div>
       </div>
-      <div style={{
-        // center the content of the div
-        // margin: "auto",
-        // width: "50%",
-        // border: "3px solid green",
-      }}>
-        <MessageBox message={Message} ProgressValue={ProgressValue} SetProgressValue={SetProgressValue} ProgressImage={ProgressImage} SetProgressImage={SetProgressImage} TotalImage={TotalImage} SetTotalImage={SetTotalImage} CurrentImage={CurrentImage} SetCurrentImage={SetCurrentImage} CurrentBucket = {bucket_name} CurrentJob = {CurrentJob}/>
+      <div>
+        <MessageBox message={Message} ProgressValue={ProgressValue} SetProgressValue={SetProgressValue} ProgressImage={ProgressImage} SetProgressImage={SetProgressImage} TotalImage={TotalImage} SetTotalImage={SetTotalImage} CurrentImage={CurrentImage} SetCurrentImage={SetCurrentImage} CurrentBucket={bucket_name} CurrentJob={CurrentJob} />
       </div>
     </div>
   );
@@ -466,7 +463,7 @@ function JobProcessor(props) {
 function AddToItems(setItems, items, job, state) {
 
   var item_name = job.brainID
-  var itemID =  job.jobID
+  var itemID = job.jobID
   console.log('job', job)
   var new_list = []
   for (var i in items) {
@@ -480,7 +477,7 @@ function AddToItems(setItems, items, job, state) {
     if (items[i].label == state) {
       if (items[i].children) {
         var newEntry = getItem(item_name, itemID, icon)
-        
+
         newEntry['current_image'] = job.current_image
         newEntry['total_images'] = job.total_images
         newEntry['progress'] = job.progress
@@ -563,7 +560,7 @@ function checkForRunningJobs(items, setItems, bucket_name) {
           else {
             items = AddToItems(setItems, items, jobs[i], "Processing")
           }
-        } 
+        }
 
       }
 

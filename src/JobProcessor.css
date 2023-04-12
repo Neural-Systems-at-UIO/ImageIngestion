@@ -1,0 +1,57 @@
+/* target the div with id messagebox */
+#MessageBox {
+    display: flex;
+    padding: 2rem;
+  }
+
+/* target custom component Progress */
+#Progress {
+    padding: 0.5rem;
+  }
+#messageAndViewer {
+    display: flex;
+    flex-direction: row;
+  }
+#currentStatus {
+    display: "flex";
+    flex-direction: "column";
+    padding: 0.5rem;
+  }
+/* adjust padding for smaller screens */
+@media (max-height: 800px) {
+    #MessageBox {
+        padding: 1rem;
+    }
+    
+    #Progress {
+        padding: 0.25rem;
+    }
+    
+    #currentStatus {
+        padding: 0.25rem;
+    }
+}
+#inputID {
+    display: flex;
+}
+
+#brainEmoji {
+    text-shadow: 0px 0px 9px white;
+}
+
+#jobMenu {
+    display: flex;
+
+}
+
+#jobScrollColumn {
+    /* max-height: 27vh; */
+    /* set max height to the available on screen space */
+
+    overflow-y: auto;
+  }
+#viewBrain {
+    margin-left: 1rem;
+    margin-top: 0.5rem;
+    width: 10rem;
+}
