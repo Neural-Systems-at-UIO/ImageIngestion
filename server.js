@@ -82,8 +82,9 @@ app.get("/bucketurl/", (req, res) => {
 });
 
 app.get("/auth/", (req, res) => {
-
+  console.log("authenticating");
   var code = req.query.code;
+  console.log(code);
 
   get_token(code, res);
 });
@@ -997,12 +998,8 @@ function get_token(code, res) {
   var target_url =
     "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect/token";
   //
-  if (process.env.NODE_ENV === "production") {
-    redirect_uri = process.env.REACT_APP_PROD_URL;
-  }
-  else if (process.env.NODE_ENV === "development") {
-    redirect_uri = process.env.REACT_APP_DEV_URL;
-  }
+  let redirect_uri = process.env.REACT_APP_URL;
+
   const params = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: process.env.CLIENT_ID,

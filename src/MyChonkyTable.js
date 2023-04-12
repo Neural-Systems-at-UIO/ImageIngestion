@@ -184,15 +184,12 @@ function createFileChain(targetFilePath) {
       
       // request to generate brain
       var xhr = new XMLHttpRequest();
-      if (process.env.NODE_ENV === "development") {
-        var target_url = process.env.REACT_APP_DEV_URL;
-      } else {
-        var target_url = process.env.REACT_APP_PROD_URL;
-      }
+      let redirect_uri = process.env.REACT_APP_URL;
+
       console.log("CurDIRPath: " + curDirPath);
       xhr.open(
         "GET",
-        `${target_url}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`,
+        `${redirect_uri}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`,
         true
       );
       // set token to header

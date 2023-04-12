@@ -11,7 +11,8 @@ console.log(process.env.NODE_ENV)
 // websocket is on a middleware server with the address http://localhost:8080/websocket
 // this is the address of the websocket server
 
-
+var WS_URL = process.env.REACT_APP_WS_URL;
+// production 
 if (process.env.NODE_ENV === "development") {
   var WS_URL = process.env.REACT_APP_WS_URL;
 }
@@ -37,14 +38,11 @@ function getItem(label, key, icon, children, type) {
 
 function listFinalisedBrains(bucket_name, setItems, items, token) {
   const xhr = new XMLHttpRequest();
-  if (process.env.NODE_ENV === "development") {
-    var target_url = process.env.REACT_APP_DEV_URL;
-  } else {
-    var target_url = process.env.REACT_APP_PROD_URL;
-  }
+  let redirect_uri = process.env.REACT_APP_URL;
+
   xhr.open(
     "GET",
-    `${target_url}/listBucket?bucketName=${bucket_name}&folderName=.nesysWorkflowFiles/alignmentJsons/`,
+    `${redirect_uri}/listBucket?bucketName=${bucket_name}&folderName=.nesysWorkflowFiles/alignmentJsons/`,
     true
   );
   xhr.setRequestHeader("Authorization", `Bearer ${token}`);
@@ -201,13 +199,9 @@ function pollJobStatus(
 ) {
 
   var xhr = new XMLHttpRequest();
-  if (process.env.NODE_ENV === "development") {
-    var target_url = process.env.REACT_APP_DEV_URL;
-  }
-  else {
-    var target_url = process.env.REACT_APP_PROD_URL;
-  }
-  xhr.open("GET", `${target_url}/jobStatus?jobID=` + jobID + `&bucketName=${bucket_name}`, true);
+  let redirect_uri = process.env.REACT_APP_URL;
+
+  xhr.open("GET", `${redirect_uri}/jobStatus?jobID=` + jobID + `&bucketName=${bucket_name}`, true);
   // add query string
 
   // add token to header
@@ -241,13 +235,9 @@ function pollJobStatus(
 function getUser(token) {
   return new Promise((resolve, reject) => {
     var xhr = new XMLHttpRequest();
-    if (process.env.NODE_ENV === "development") {
-      var target_url = process.env.REACT_APP_DEV_URL;
-    }
-    else {
-      var target_url = process.env.REACT_APP_PROD_URL;
-    }
-    xhr.open("GET", `${target_url}/getuser`, true);
+    let redirect_uri = process.env.REACT_APP_URL;
+
+    xhr.open("GET", `${redirect_uri}/getuser`, true);
     // add authorization header
     xhr.setRequestHeader("Authorization", token);
     xhr.send();
@@ -527,13 +517,9 @@ function AddToItems(setItems, items, job, state) {
 function checkForRunningJobs(items, setItems, bucket_name) {
   var xhr = new XMLHttpRequest();
   // bucket_name = urlParams.get("clb-collab-id")
-  if (process.env.NODE_ENV === "development") {
-    var target_url = process.env.REACT_APP_DEV_URL;
-  }
-  else {
-    var target_url = process.env.REACT_APP_PROD_URL;
-  }
-  xhr.open("GET", `${target_url}/checkForRunningJobs?bucketName=${bucket_name}`, true);
+  let redirect_uri = process.env.REACT_APP_URL;
+
+  xhr.open("GET", `${redirect_uri}/checkForRunningJobs?bucketName=${bucket_name}`, true);
   xhr.send();
 
   xhr.onreadystatechange = function () {

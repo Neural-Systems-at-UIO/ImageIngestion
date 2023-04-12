@@ -21,13 +21,10 @@ function getUserRoles(token) {
       
     // make request to getUser
     var xhr = new XMLHttpRequest();
-    if (process.env.NODE_ENV === "development") {
-      var target_url = process.env.REACT_APP_DEV_URL;
-    } else {
-      var target_url = process.env.REACT_APP_PROD_URL;
-    }
+    let redirect_uri = process.env.REACT_APP_URL;
+
     
-    xhr.open("GET", target_url+ "/getuserroles", true);
+    xhr.open("GET", redirect_uri + "/getuserroles", true);
     xhr.setRequestHeader("Content-Type", "application/json");
     xhr.setRequestHeader("Authorization", token);
     xhr.send();

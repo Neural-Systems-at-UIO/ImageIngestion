@@ -45,10 +45,12 @@ function App() {
   // SetCurrentBucket("deepslice");
   useEffect(() => {
     
-    
+    console.log('getting token')
     getToken(token)
+
     .then((ret_val) => {
       token = ret_val;
+      console.log("token: " + token)
       SetToken(ret_val);
       
       ListBucketFiles(

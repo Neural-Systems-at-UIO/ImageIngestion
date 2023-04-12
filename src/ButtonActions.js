@@ -247,16 +247,12 @@ function getNewFile(file, accepted_types) {
 export function ListBucketFiles(setFiles, bucket_name, folder_name, token) {
   console.log(process.env.NODE_ENV)
   const xhr = new XMLHttpRequest();
-  if (process.env.NODE_ENV === "development") {
-    var target_url = process.env.REACT_APP_DEV_URL;
-  } else {
-    var target_url = process.env.REACT_APP_PROD_URL;
-  }
-  
+  let redirect_uri = process.env.REACT_APP_URL;
+
   
   xhr.open(
     "GET",
-    `${target_url}/listBucket?bucketName=${bucket_name}&folderName=${folder_name}`,
+    `${redirect_uri}/listBucket?bucketName=${bucket_name}&folderName=${folder_name}`,
     true
   );
 

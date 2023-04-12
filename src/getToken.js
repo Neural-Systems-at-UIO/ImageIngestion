@@ -11,11 +11,11 @@ export function getToken(current_token) {
 
     // clear url
     //   window.history.pushState({}, document.title, "/" );
+    var redirect_uri = process.env.REACT_APP_URL;
+
     if (process.env.NODE_ENV === "development") {
-      var redirect_uri = process.env.REACT_APP_DEV_URL;
       xhr.open("GET", `${redirect_uri}/auth?code=${code}`, true);
     } else {
-      var redirect_uri = process.env.REACT_APP_PROD_URL;
       xhr.open("GET", `auth?code=${code}`, true);
 
     }
