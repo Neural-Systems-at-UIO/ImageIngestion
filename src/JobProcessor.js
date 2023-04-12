@@ -385,9 +385,12 @@ function JobProcessor(props) {
 
     })
     ;
-    listFinalisedBrains(bucket_name, setItems, items, props.token);
   }
   }, [props.token]);
+
+  useEffect(() => {
+    listFinalisedBrains(bucket_name, setItems, items, props.token);
+  }, [bucket_name, props.token]);
   
 
 
