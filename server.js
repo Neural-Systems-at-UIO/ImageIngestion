@@ -82,9 +82,14 @@ app.get("/bucketurl/", (req, res) => {
 });
 
 app.get("/auth/", (req, res) => {
+<<<<<<< HEAD
   console.log("authenticating");
   var code = req.query.code;
   console.log(code);
+=======
+
+  var code = req.query.code;
+>>>>>>> 4169bba2937146edf35610df2f0329089e012495
 
   get_token(code, res);
 });
