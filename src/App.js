@@ -23,11 +23,7 @@ function App() {
 
   // if (url.includes("ebrainsworkbench")){
     // get the state from the url
-<<<<<<< HEAD
   var init_bucket_state = urlParams.get("state");
-=======
-  var bucket_state = urlParams.get("state");
->>>>>>> 4169bba2937146edf35610df2f0329089e012495
   // decode url
   if (init_bucket_state !== null){
     var bucket_state = decodeURIComponent(init_bucket_state)

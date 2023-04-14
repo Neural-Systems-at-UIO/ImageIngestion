@@ -185,24 +185,12 @@ function createFileChain(targetFilePath) {
       
       // request to generate brain
       var xhr = new XMLHttpRequest();
-<<<<<<< HEAD
       let redirect_uri = process.env.REACT_APP_URL;
 
       console.log("CurDIRPath: " + curDirPath);
       xhr.open(
         "GET",
         `${redirect_uri}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`,
-=======
-      if (process.env.NODE_ENV === "development") {
-        var target_url = process.env.REACT_APP_DEV_URL;
-      } else {
-        var target_url = process.env.REACT_APP_PROD_URL;
-      }
-      console.log("CurDIRPath: " + curDirPath);
-      xhr.open(
-        "GET",
-        `${target_url}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`,
->>>>>>> 4169bba2937146edf35610df2f0329089e012495
         true
       );
       // set token to header
@@ -249,14 +237,8 @@ function createFileChain(targetFilePath) {
       />
       {/* create directory upload button */}
       <input
-<<<<<<< HEAD
         id="hiddenFolderUploadButton"
         type="file"
-=======
-        type="file"
-        style={{ display: "none" }}
-        id="folderUpload"
->>>>>>> 4169bba2937146edf35610df2f0329089e012495
         webkitdirectory="true"
         directory="true"
         multiple="true"
