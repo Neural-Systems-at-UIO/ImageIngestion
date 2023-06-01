@@ -20,11 +20,7 @@
 
 .App-header {
   background-color: #282c34;
-<<<<<<< HEAD
   /* min-height: 100vh; */ /* remove this line */
-=======
-  /* min-height: 100vh; */
->>>>>>> 4169bba2937146edf35610df2f0329089e012495
   display: flex;
   flex-direction: column;
   align-items: center;
