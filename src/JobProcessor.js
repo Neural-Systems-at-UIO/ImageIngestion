@@ -520,9 +520,15 @@ function checkForRunningJobs(items, setItems, bucket_name) {
   var xhr = new XMLHttpRequest();
   // bucket_name = urlParams.get("clb-collab-id")
   let redirect_uri = process.env.REACT_APP_URL;
+  if (process.env.NODE_ENV == "development") {
 
   xhr.open("GET", `${redirect_uri}/checkForRunningJobs?bucketName=${bucket_name}`, true);
   xhr.send();
+  }
+  else{
+    xhr.open("GET", `/checkForRunningJobs?bucketName=${bucket_name}`, true);
+    xhr.send();
+  }
 
   xhr.onreadystatechange = function () {
     if (xhr.status == 200 && xhr.readyState == 4) {
