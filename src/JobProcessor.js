@@ -96,10 +96,7 @@ function listFinalisedBrains(bucket_name, setItems, items, token) {
 
 
 function MessageBox(props) {
-  if (props.TotalImage == props.CurrentImage && props.TotalImage != 0) {
-    var head = "Brain Created"
-  }
-  else if (props.TotalImage == 0) {
+
   if (props.TotalImage == props.CurrentImage && props.TotalImage != 0) {
     var head = "Brain Created"
   }
@@ -154,13 +151,7 @@ type="primary" onClick={
     </div>
   );
 }
-function openViewerInNewTab(bucket_name, brain_id) {
-  console.log(bucket_name)
-  let viewer_url = "https://miosdv.apps-dev.hbp.eu/index.html?bucket="
-  let apiUrl = "https://tar-svc-test.apps.hbp.eu/fakebucket/?url=https://data-proxy.ebrains.eu/api/v1/buckets/" + bucket_name + "?prefix=.nesysWorkflowFiles/zippedPyramids/" + brain_id
-  // open the viewer in a new tab
-  window.open(viewer_url + apiUrl, "_blank");
-}
+
 function openViewerInNewTab(bucket_name, brain_id) {
   console.log(bucket_name)
   let viewer_url = "https://miosdv.apps-dev.hbp.eu/index.html?bucket="
