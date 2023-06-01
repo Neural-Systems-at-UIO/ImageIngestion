@@ -913,8 +913,7 @@ function saveJobMetaData(jobID, token) {
   var strip_file_name = fileName.split(".")[0];
   var jobMetadataFile = `${strip_file_name}.json`;
   fs.writeFileSync(`runningJobs/${jobID}/${jobMetadataFile}`, jobMetadataString);
-  fs.writeFileSync(`runningJobs/${jobID}/${strip_file_name}.waln`, { 'atlas': 'mouse' });
-  // upload jobMetadata.json to bucket
+fs.writeFileSync(`runningJobs/${jobID}/${strip_file_name}.waln`, JSON.stringify({ 'atlas': 'mouse' }));  // upload jobMetadata.json to bucket
   var target_bucket = `${jobMetadata.bucketName}/.nesysWorkflowFiles/Metadata/`
   console.log(jobMetadataFile)
   console.log(`${strip_file_name}.waln`)
@@ -924,7 +923,7 @@ function saveJobMetaData(jobID, token) {
   if (RunningJobs[jobID]['current_image'] == RunningJobs[jobID]['total_images']) { 
     delete RunningJobs[jobID]
   } 
-  if ( RunningJobs[jobID].status == 'Error' ) {
+  else if ( RunningJobs[jobID].status == 'Error' ) {
     delete RunningJobs[jobID]
   } 
 
