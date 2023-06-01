@@ -249,12 +249,23 @@ export function ListBucketFiles(setFiles, bucket_name, folder_name, token) {
   const xhr = new XMLHttpRequest();
   let redirect_uri = process.env.REACT_APP_URL;
 
+  if (process.env.NODE_ENV == "development") {
+    xhr.open(
+      "GET",
+      `${redirect_uri}/listBucket?bucketName=${bucket_name}&folderName=${folder_name}`,
+      true
+    );
   
-  xhr.open(
-    "GET",
-    `${redirect_uri}/listBucket?bucketName=${bucket_name}&folderName=${folder_name}`,
-    true
-  );
+  }  
+  else {
+    xhr.open(
+      "GET",
+      `/listBucket?bucketName=${bucket_name}&folderName=${folder_name}`,
+      true
+    );
+  }
+  
+
 
   // add query strings
   // set a uthorization header
