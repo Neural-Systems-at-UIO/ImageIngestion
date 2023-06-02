@@ -207,10 +207,13 @@ function pollJobStatus(
 
   var xhr = new XMLHttpRequest();
   let redirect_uri = process.env.REACT_APP_URL;
-
+if (process.env.NODE_ENV === 'development') {
   xhr.open("GET", `${redirect_uri}/jobStatus?jobID=` + jobID + `&bucketName=${bucket_name}`, true);
   // add query string
-
+} else {
+  // run appropriate version for deployment
+  xhr.open("GET", `/jobStatus?jobID=` + jobID, true);
+}
   // add token to header
   xhr.setRequestHeader("Authorization", "Bearer " + token);
   xhr.send();
@@ -244,8 +247,13 @@ function getUser(token) {
     var xhr = new XMLHttpRequest();
     let redirect_uri = process.env.REACT_APP_URL;
 
-    xhr.open("GET", `${redirect_uri}/getuser`, true);
-    // add authorization header
+if (process.env.NODE_ENV === 'development') {
+  xhr.open("GET", `${redirect_uri}/jobStatus?jobID=` + jobID + `&bucketName=${bucket_name}`, true);
+  // add query string
+} else {
+  // run appropriate version for deployment
+  xhr.open("GET", `/jobStatus?jobID=` + jobID, true);
+}
     xhr.setRequestHeader("Authorization", token);
     xhr.send();
     xhr.onreadystatechange = function () {
