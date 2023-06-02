@@ -41,11 +41,11 @@ function listFinalisedBrains(bucket_name, setItems, items, token) {
   const xhr = new XMLHttpRequest();
   let redirect_uri = process.env.REACT_APP_URL;
 
-  xhr.open(
-    "GET",
-    `${redirect_uri}/listBucket?bucketName=${bucket_name}&folderName=.nesysWorkflowFiles/alignmentJsons/`,
-    true
-  );
+ if (process.env.NODE_ENV === 'development') {
+  xhr.open("GET", `${redirect_uri}/listBucket?bucketName=${bucket_name}&folderName=.nesysWorkflowFiles/alignmentJsons/`, true);
+} else {
+  xhr.open("GET", "/listBucket?bucketName=" + bucket_name + "&folderName=.nesysWorkflowFiles/alignmentJsons/", true);
+}
   xhr.setRequestHeader("Authorization", `Bearer ${token}`);
   xhr.send();
   xhr.onload = function () {
