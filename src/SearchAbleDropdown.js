@@ -24,8 +24,11 @@ function getUserRoles(token) {
     let redirect_uri = process.env.REACT_APP_URL;
 
     
-    xhr.open("GET", redirect_uri + "/getuserroles", true);
-    xhr.setRequestHeader("Content-Type", "application/json");
+    if (process.env.NODE_ENV === 'development') {
+      xhr.open("GET", `${redirect_uri}/getuserroles`, true);
+    } else {
+      xhr.open("GET", "/getuserroles", true);
+    }    xhr.setRequestHeader("Content-Type", "application/json");
     xhr.setRequestHeader("Authorization", token);
     xhr.send();
     xhr.onreadystatechange = function () {
