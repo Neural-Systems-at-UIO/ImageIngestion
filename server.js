@@ -996,6 +996,12 @@ function get_token(code, res) {
   var target_url =
     "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect/token";
   //
+  if (process.env.NODE_ENV === "production") {
+    var redirect_uri = "https://tif-dzi-tar-svc-test.apps.hbp.eu";
+  }
+  else {
+    var redirect_uri = process.env.REACT_APP_URL;
+
   let redirect_uri = process.env.REACT_APP_URL;
 
   const params = new URLSearchParams({
