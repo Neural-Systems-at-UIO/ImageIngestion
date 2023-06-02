@@ -1002,8 +1002,7 @@ function get_token(code, res) {
   else {
     var redirect_uri = process.env.REACT_APP_URL;
 
-  let redirect_uri = process.env.REACT_APP_URL;
-
+  }
   const params = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: process.env.CLIENT_ID,
