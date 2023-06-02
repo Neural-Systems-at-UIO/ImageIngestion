@@ -188,11 +188,11 @@ function createFileChain(targetFilePath) {
       let redirect_uri = process.env.REACT_APP_URL;
 
       console.log("CurDIRPath: " + curDirPath);
-      xhr.open(
-        "GET",
-        `${redirect_uri}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`,
-        true
-      );
+  if (process.env.NODE_ENV === 'development') {
+  xhr.open("GET", `${redirect_uri}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`, true);
+} else {
+  xhr.open("GET", `/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`, true);
+}
       // set token to header
       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
       xhr.send();
