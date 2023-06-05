@@ -65,9 +65,10 @@ function App() {
     )
     })
     .then(() => {
-      window.history.pushState({}, document.title, "?clb-collab-id=" + currentBucket );
+      window.history.pushState({}, document.title, "/?clb-collab-id=" + currentBucket );
     })
     .catch((err) => {
+      
       
     })
     ;
