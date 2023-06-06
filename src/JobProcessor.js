@@ -40,14 +40,14 @@ function getItem(label, key, icon, children, type) {
 function listFinalisedBrains(bucket_name, setItems, items, token) {
   const xhr = new XMLHttpRequest();
   let redirect_uri = process.env.REACT_APP_URL;
-
+  console.log('LISTING FINALISED BRAINS')
  if (process.env.NODE_ENV === 'development') {
   xhr.open("GET", `${redirect_uri}/listBucket?bucketName=${bucket_name}&folderName=.nesysWorkflowFiles/alignmentJsons/`, true);
 } else {
   xhr.open("GET", "/listBucket?bucketName=" + bucket_name + "&folderName=.nesysWorkflowFiles/alignmentJsons/", true);
 }
-  xhr.setRequestHeader("Authorization", `Bearer ${token}`);
-  xhr.send();
+xhr.setRequestHeader("Authorization", "Bearer " + token);
+xhr.send();
   xhr.onload = function () {
     if (xhr.status === 200 && xhr.readyState === 4) {
       var response = JSON.parse(xhr.responseText);
@@ -212,7 +212,7 @@ if (process.env.NODE_ENV === 'development') {
   // add query string
 } else {
   // run appropriate version for deployment
-  xhr.open("GET", `/jobStatus?jobID=` + jobID, true);
+  xhr.open("GET", `/jobStatus?jobID=` + jobID + `&bucketName=${bucket_name}`, true);
 }
   // add token to header
   xhr.setRequestHeader("Authorization", "Bearer " + token);
@@ -404,8 +404,11 @@ function JobProcessor(props) {
   }, [props.token]);
 
   useEffect(() => {
+    if (props.token != null) {
     listFinalisedBrains(bucket_name, setItems, items, props.token);
+    }
   }, [bucket_name, props.token]);
+
 
 
 
