@@ -40,14 +40,14 @@ function getItem(label, key, icon, children, type) {
 function listFinalisedBrains(bucket_name, setItems, items, token) {
   const xhr = new XMLHttpRequest();
   let redirect_uri = process.env.REACT_APP_URL;
-  console.log('LISTING FINALISED BRAINS')
- if (process.env.NODE_ENV === 'development') {
-  xhr.open("GET", `${redirect_uri}/listBucket?bucketName=${bucket_name}&folderName=.nesysWorkflowFiles/alignmentJsons/`, true);
-} else {
-  xhr.open("GET", "/listBucket?bucketName=" + bucket_name + "&folderName=.nesysWorkflowFiles/alignmentJsons/", true);
-}
-xhr.setRequestHeader("Authorization", "Bearer " + token);
-xhr.send();
+
+  if (process.env.NODE_ENV === 'development') {
+    xhr.open("GET", `${redirect_uri}/listBucket?bucketName=${bucket_name}&folderName=.nesysWorkflowFiles/alignmentJsons/`, true);
+  } else {
+    xhr.open("GET", "/listBucket?bucketName=" + bucket_name + "&folderName=.nesysWorkflowFiles/alignmentJsons/", true);
+  }
+  xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+  xhr.send();
   xhr.onload = function () {
     if (xhr.status === 200 && xhr.readyState === 4) {
       var response = JSON.parse(xhr.responseText);
@@ -117,7 +117,7 @@ function MessageBox(props) {
     // center the content
     <div id="MessageBox">
       <Progress
-      id="Progress"
+        id="Progress"
         type="circle"
         percent={props.ProgressImage}
         format={() => `${props.CurrentImage}/${props.TotalImage}`}
@@ -127,27 +127,27 @@ function MessageBox(props) {
         percent={props.ProgressValue}
       ></Progress>
       <div
-      id="currentStatus"
-      
+        id="currentStatus"
+
       >
 
         <h2>{head}</h2>
         <div id="messageAndViewer">
-        <p>{props.message}</p>
-                {/* conditionally render a button */}
-        {/* pass an argument the onclick function */}
-        {props.TotalImage == props.CurrentImage && props.TotalImage != 0 ? <Button           id="viewBrain"
+          <p>{props.message}</p>
+          {/* conditionally render a button */}
+          {/* pass an argument the onclick function */}
+          {props.TotalImage == props.CurrentImage && props.TotalImage != 0 ? <Button id="viewBrain"
 
-type="primary" onClick={
-          () => {
-            openViewerInNewTab(props.CurrentBucket, props.CurrentJob)
-          }
-        }>View Brain</Button> : null}
+            type="primary" onClick={
+              () => {
+                openViewerInNewTab(props.CurrentBucket, props.CurrentJob)
+              }
+            }>View Brain</Button> : null}
         </div>
 
       </div>
 
-      
+
     </div>
   );
 }
@@ -452,7 +452,7 @@ function JobProcessor(props) {
               sendMessage(JSON.stringify({ "CurrentJob": CurrentJob, "KeyPath": keyPath }));
             }
             }
-      
+
             defaultSelectedKeys={['1']}
             defaultOpenKeys={['sub1', 'sub2']}
             mode="inline"
@@ -533,10 +533,10 @@ function checkForRunningJobs(items, setItems, bucket_name) {
   let redirect_uri = process.env.REACT_APP_URL;
   if (process.env.NODE_ENV == "development") {
 
-  xhr.open("GET", `${redirect_uri}/checkForRunningJobs?bucketName=${bucket_name}`, true);
-  xhr.send();
+    xhr.open("GET", `${redirect_uri}/checkForRunningJobs?bucketName=${bucket_name}`, true);
+    xhr.send();
   }
-  else{
+  else {
     xhr.open("GET", `/checkForRunningJobs?bucketName=${bucket_name}`, true);
     xhr.send();
   }
