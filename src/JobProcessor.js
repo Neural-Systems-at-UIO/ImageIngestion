@@ -105,14 +105,21 @@ function MessageBox(props) {
   } else {
     var head = "Creating your brain"
   }
-  // run after render
-  useEffect(() => {
-    const jobScrollColumn = document.querySelector('#jobScrollColumn');
-    const windowHeight = window.innerHeight; // get the height of the viewport
-    const jobScrollColumnOffsetTop = jobScrollColumn.offsetTop; // get the offset top of the element
-    const availableSpace = windowHeight - jobScrollColumnOffsetTop; // calculate the available space
-    jobScrollColumn.style.maxHeight = availableSpace + 'px'; // set the max-height of the element
-  }, []);
+// run after render
+// useEffect(() => {
+//   const jobScrollColumn = document.querySelector('#jobScrollColumn');
+//   const updateMaxHeight = () => {
+//     const windowHeight = window.innerHeight; // get the height of the viewport
+//     const jobScrollColumnOffsetTop = jobScrollColumn.offsetTop; // get the offset top of the element
+//     const availableSpace = windowHeight - jobScrollColumnOffsetTop; // calculate the available space
+//     jobScrollColumn.style.maxHeight = availableSpace + 'px'; // set the max-height of the element
+//   };
+//   updateMaxHeight(); // call the function to set the initial max-height
+//   window.addEventListener('resize', updateMaxHeight); // add a resize event listener to update the max-height
+//   return () => {
+//     window.removeEventListener('resize', updateMaxHeight); // remove the resize event listener when the component unmounts
+//   };
+// }, []);
   return (
     // center the content
     <div id="MessageBox">
@@ -252,7 +259,7 @@ function getUser(token) {
       // add query string
     } else {
       // run appropriate version for deployment
-      xhr.open("GET", `/getUser` + jobID, true);
+      xhr.open("GET", `/getUser`, true);
     }
     xhr.setRequestHeader("Authorization", token);
     xhr.send();
@@ -436,7 +443,7 @@ function JobProcessor(props) {
   }, [bucket_name]);
   console.log('total images: ', TotalImage)
   return (
-    <div id="jobMenu">
+    <div id="jobMenu" style={{minHeight:'10vh'}}>
       <div>
 
         <CreateBrain />
@@ -531,6 +538,8 @@ function checkForRunningJobs(items, setItems, bucket_name) {
   var xhr = new XMLHttpRequest();
   // bucket_name = urlParams.get("clb-collab-id")
   let redirect_uri = process.env.REACT_APP_URL;
+  console.log('test')
+  console.log('NODE ENV', process.env.NODE_ENV)
   if (process.env.NODE_ENV == "development") {
 
     xhr.open("GET", `${redirect_uri}/checkForRunningJobs?bucketName=${bucket_name}`, true);
@@ -544,6 +553,9 @@ function checkForRunningJobs(items, setItems, bucket_name) {
   xhr.onreadystatechange = function () {
     if (xhr.status == 200 && xhr.readyState == 4) {
       var jobs = xhr.responseText;
+      console.log('NODE ENV', process.env.NODE_ENV)
+
+      console.log('jobs', jobs) 
       jobs = JSON.parse(jobs)
       console.log('jobs..', jobs)
       for (var i in jobs) {
