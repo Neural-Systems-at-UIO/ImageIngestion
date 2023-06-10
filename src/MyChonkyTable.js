@@ -6,6 +6,7 @@ import { ChonkyIconFA } from "chonky-icon-fontawesome";
 import React, { useEffect, useState } from "react";
 import { ListBucketFiles, UploadFiles, DownloadFiles, DeleteFiles } from "./ButtonActions";
 import "./MyChonkyTable.css";
+import { useEventSource } from "react-use-websocket";
 // import a dropdown menu from antd
 
 
@@ -124,6 +125,8 @@ function createFileChain(targetFilePath) {
 
   function FileActionHandler(data, SetFolderChain,curDirPath, SetCurDirPath, setFiles,bucket_name, token) {
     // open a file picker UI
+    console.log('data', data)
+  
     if (data.id == "open_files" && data.payload.targetFile.isDir) {
       var targetFile = data.payload.targetFile;
       var targetFileChain = createFileChain(targetFile.id);
@@ -178,7 +181,6 @@ function createFileChain(targetFilePath) {
             selectedFiles + "," + data.state.selectedFilesForAction[i].name;
         }
       }
-
       // set bucket name
       // acquire brain ID from Input with ID brainID
       var brainID = document.getElementById("brainIDInput").value;
@@ -225,6 +227,9 @@ function createFileChain(targetFilePath) {
         button.style.display = "none";
     }
     
+    
+  
+
     return (
         <div id="uploadContainer">
         <input
@@ -249,17 +254,20 @@ function createFileChain(targetFilePath) {
         disableDefaultFileActions={true}
         onFileAction={passToFileAction(SetFolderChain,curDirPath, SetCurDirPath,setFiles, bucket_name, token)}
         files={files}
+
         defaultFileViewActionId={ChonkyActions.EnableListView.id}
         fileActions={myFileActions}
         folderChain={folderChain}
         iconComponent={MyEmojiIcon}
+        clearSelectionOnOutsideClick={false}
       >
         <FileNavbar />
 
         <FileToolbar />
-        <FileList />
+     
+  <FileList/>
         {/* <FileContextMenu /> */}
-      </FileBrowser>
+      </FileBrowser >
         </div>
     );
     }
