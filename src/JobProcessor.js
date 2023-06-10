@@ -179,12 +179,13 @@ function CreateBrain() {
 
   };
   const inputClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
     var popover = document.querySelector('.ant-popover');
     // display the popover
     // popover.style.display = "block";
 
-    e.preventDefault();
-    e.stopPropagation();
+  
     // temp close the popover until its clicked again
 
 
