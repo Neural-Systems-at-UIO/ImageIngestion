@@ -41,13 +41,13 @@
 
 #jobMenu {
     display: flex;
-    max-height: 26vh;
 
 
 }
 
 #jobScrollColumn {
     /* set max height to the available on screen space */
+    max-height: 26vh;
 
     overflow-y: auto;
   }

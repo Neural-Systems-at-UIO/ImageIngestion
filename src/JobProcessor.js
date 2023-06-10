@@ -280,7 +280,7 @@ function getUser(token) {
 }
 
 
-function updateJobList(setItems, items, job) {
+function updateJobList(setItems, items, job, SetCurrentJob) {
   var whereIsTheJob = 'Nowhere'
   for (var processChild in items[0].children) {
     if (items[0].children[processChild].key == job.jobID) {
@@ -308,6 +308,7 @@ function updateJobList(setItems, items, job) {
 
       // we no longer need to look for jobs in server with the uuid and instead switch to checking the bucket for the brainid
       job.jobID = job.brainID
+      SetCurrentJob(job.brainID)
 
 
       // items = items
@@ -393,7 +394,7 @@ function JobProcessor(props) {
   useEffect(() => {
     if (jobUpdateVar != false) {
       console.log('runnign effect')
-      items = updateJobList(setItems, items, jobUpdateVar)
+      items = updateJobList(setItems, items, jobUpdateVar, SetCurrentJob)
     }
   }, [jobUpdateVar])
 
