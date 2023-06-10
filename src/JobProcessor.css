@@ -16,7 +16,7 @@
     display: "flex";
     flex-direction: "column";
     padding: 0.5rem;
-  }
+  }-
 /* adjust padding for smaller screens */
 @media (max-height: 800px) {
     #MessageBox {
@@ -42,11 +42,12 @@
 #jobMenu {
     display: flex;
 
+
 }
 
 #jobScrollColumn {
-    /* max-height: 27vh; */
     /* set max height to the available on screen space */
+    max-height: 26vh;
 
     overflow-y: auto;
   }
