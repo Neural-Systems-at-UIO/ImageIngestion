@@ -511,6 +511,7 @@ function ReadJobMetadata(bucketName, brainID, token, res) {
         })
         .then((json) => {
           console.log(json)
+          
           var return_json = {
             status: "Done",
             progress: 100,
@@ -601,25 +602,25 @@ function createPyramid(file_name, jobID) {
 
   strip_file_name = file_name.split(".")[0];
   // only run in prod
-  if (process.env.NODE_ENV == "production") {
-    var cmd = `magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
-  } else {
-    var cmd = `./magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
-  }
+  // if (process.env.NODE_ENV == "production") {
+  //   var cmd = `magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
+  // } else {
+  //   var cmd = `squashfs-root/AppRun identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
+  // }
 
-  if (process.env.NODE_ENV == "production" &&  file_name.split(".")[1] == "tif") {
-    var numchannels = 'unknown due to openshift not supporting tiff'
-  } 
-  else {
-   var numChannels = execSync(cmd).toString().trim();
-  }
-  console.log('numChannels', numChannels)
-  if (numChannels == "srgba") {
-    var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
-  } else {
-    var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf jpg  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
-  }
-  console.log(cmd)
+  // if (process.env.NODE_ENV == "production" &&  file_name.split(".")[1] == "tif") {
+  //   var numchannels = 'unknown due to openshift not supporting tiff'
+  // } 
+  // else {
+  //  var numChannels = execSync(cmd).toString().trim();
+  // }
+  // console.log('numChannels', numChannels)
+  // if (numChannels == "srgba") {
+  //   var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
+  // } else {
+  //   var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf jpg  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
+  // }
+  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 function tarDZI(file_name, jobID) {
@@ -838,20 +839,20 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
     if (process.env.NODE_ENV == "development") {
 
       
-      var cmd = `./magick identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var cmd = `squashfs-root/AppRun identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
       var imageWidth = execSync(cmd).toString().trim();
       // get image height
-      var cmd = `./magick identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var cmd = `squashfs-root/AppRun identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
       var imageHeight = execSync(cmd).toString().trim();
       // get file size
       var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
       var fileSize = execSync(cmd).toString().trim();
       // get number of channels
-      var cmd = `./magick identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var cmd = `squashfs-root/AppRun identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
       var numChannels = execSync(cmd).toString().trim();
 
       // get bit depth
-      var cmd = `./magick identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
+      var cmd = `squashfs-root/AppRun identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
       var bitDepth = execSync(cmd).toString().trim();
     }
     else {

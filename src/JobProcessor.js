@@ -38,7 +38,9 @@ function getItem(label, key, icon, children, type) {
 }
 
 function listFinalisedBrains(bucket_name, setItems, items, token) {
+  
   const xhr = new XMLHttpRequest();
+  return new Promise((resolve, reject) => {
   let redirect_uri = process.env.REACT_APP_URL;
 
   if (process.env.NODE_ENV === 'development') {
@@ -61,11 +63,14 @@ function listFinalisedBrains(bucket_name, setItems, items, token) {
           items = AddToItems(setItems, items, array, 'Prepared Brains')
         }
       }
+      resolve(items)
     } else {
       console.log("Error: ", xhr.status);
       console.log(xhr.responseText);
+      reject(xhr.responseText)
     }
   };
+});
 
 }
 
@@ -414,7 +419,14 @@ function JobProcessor(props) {
 
   useEffect(() => {
     if (props.token != null) {
-    listFinalisedBrains(bucket_name, setItems, items, props.token);
+      sendMessage(JSON.stringify({ "CurrentBucket": bucket_name }));
+      var items = [
+        getItem('Processing', 'sub1', '', []),
+        getItem('Prepared Brains', 'sub2', '', [])
+      ];
+      listFinalisedBrains(bucket_name, setItems, items, props.token).then((items) => {
+        checkForRunningJobs(items, setItems, bucket_name);
+      });
     }
   }, [bucket_name, props.token]);
 
@@ -432,8 +444,7 @@ function JobProcessor(props) {
 
 
   useEffect(() => {
-    sendMessage(JSON.stringify({ "CurrentBucket": bucket_name }));
-    checkForRunningJobs(items, setItems, bucket_name);
+
     // setInterval(
     //   checkForRunningJobs,
     //   1000,
