@@ -62,10 +62,10 @@ export function DeleteFiles(fileActionDispatch, curDirPath, setFiles, bucket_nam
 }
 export function UploadFiles(curDirPath, setFiles,bucket_name,folder, token) {
   if (folder == false) {
-    var fileInput = document.getElementById("fileUpload");
+    var fileInput = document.getElementById("hiddenFileUploadButton");
   }
   else {
-    var fileInput = document.getElementById("folderUpload");
+    var fileInput = document.getElementById("hiddenFolderUploadButton");
   }
   console.log('curDirPath', curDirPath)
   fileInput.click();

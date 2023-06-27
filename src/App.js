@@ -96,6 +96,7 @@ function App() {
       curDirPath={curDirPath} 
       ></SearchAbleDropdown>
       <MyChonkyTable token={token} currentBucket={currentBucket} files={files} setFiles = {setFiles} folderChain = {folderChain} SetFolderChain={SetFolderChain} curDirPath={curDirPath} SetCurDirPath={SetCurDirPath}></MyChonkyTable>
+      <div id="margin" style={{'height':'1vh',  'backgroundColor':'gray', 'marginBottom':'0.5vh'}}></div>
       <JobProcessor
       token = {token}
       currentBucket={currentBucket}

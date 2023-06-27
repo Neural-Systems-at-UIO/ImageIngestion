@@ -1,9 +1,13 @@
 /* target the div with id messagebox */
 #MessageBox {
-    display: flex;
-    padding: 2rem;
-  }
-
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  width: 30vw;
+  height:20vh;
+  /* padding: 4rem; */
+}
 /* target custom component Progress */
 #Progress {
     padding: 0.5rem;
