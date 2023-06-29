@@ -620,7 +620,8 @@ function createPyramid(file_name, jobID) {
   // } else {
   //   var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf jpg  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
   // }
-  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
+  var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i "runningJobs/${jobID}/${strip_file_name}/${file_name}" -tf png  -icr 0.01 -o "runningJobs/${jobID}/${strip_file_name}/" & `;
+  console.log(cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 function tarDZI(file_name, jobID) {
@@ -694,12 +695,12 @@ function curlToBucket(target_url, file_name, jobID, proj_file) {
   strip_file_name = file_name.split(".")[0];
   if (proj_file) {
 
-    var cmd = `curl -X PUT -T runningJobs/${jobID}/${file_name} "${target_url}"`;
+    var cmd = `curl -X PUT -T "runningJobs/${jobID}/${file_name}" "${target_url}"`;
 
   } else {
 
 
-    var cmd = `curl -X PUT -T runningJobs/${jobID}/${strip_file_name}/${file_name} "${target_url}"`;
+    var cmd = `curl -X PUT -T "runningJobs/${jobID}/${strip_file_name}/${file_name}" "${target_url}"`;
   }
   console.log(cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
@@ -748,7 +749,7 @@ function zipDZI(filename, jobID) {
   // only zip the dzi folder
   var list_to_zip = [`${strip_file_name}_files`, `${strip_file_name}.dzi`];
   // write multiline command which first changes directory to the folder to be zipped, then zips the folder and then changes back to the original directory
-  var cmd = `cd runningJobs/${jobID}/${strip_file_name} && ../../../zip -q -0 -r ${strip_file_name}.dzip ${list_to_zip.join(" ")} && cd ../../..`;
+  var cmd = `cd "runningJobs/${jobID}/${strip_file_name}" && ../../../zip -q -0 -r "${strip_file_name}.dzip" '${list_to_zip.join("' '")}' && cd ../../..`;
 
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
