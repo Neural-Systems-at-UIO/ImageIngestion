@@ -13,12 +13,13 @@ function getItem(label, key, icon, children, type) {
 
 
 // takes argument of itemsj
-const BrainList = ({ items, CurrentJob, SetCurrentJob })  => {
+const BrainList = ({ items, CurrentJob, SetCurrentJob, selectedKeys, setSelectedKeys })  => {
     const onClick = (e) => {
       ;
       CurrentJob = e.key;
       SetCurrentJob(CurrentJob);
       console.log('brainlist currenet job', CurrentJob)
+      setSelectedKeys([e.key]);
 
     };
 
@@ -28,6 +29,7 @@ const BrainList = ({ items, CurrentJob, SetCurrentJob })  => {
         onClick={onClick}
         defaultSelectedKeys={['1']}
         defaultOpenKeys={['sub1', 'sub2']}
+        selectedKeys={selectedKeys}
         mode="inline"
         items={items}
         />

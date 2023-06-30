@@ -250,11 +250,12 @@ app.get("/tiffListToTarDZI", function (req, res) {
   var brainID = req.query.brainID;
   var token = req.headers.authorization;
   var folder_name = req.query.folderName;
+  var selectedAtlas = req.query.selectedAtlas;
   console.log('folder_name', folder_name)
 
 
   // 
-  convert_list_of_tiffs_to_tarDZI(bucketName, file_list, token, brainID, res, folder_name);
+  convert_list_of_tiffs_to_tarDZI(bucketName, file_list, token, brainID, res, folder_name, selectedAtlas);
 });
 
 app.use(function (req, res, next) {
@@ -760,7 +761,7 @@ function writeEmptyFile(filename, jobID) {
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
 
-function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID, folder_name) {
+function convert_tiff_to_tarDZI(bucketName, fileName, token, jobID, folder_name, selectedAtlas) {
   return new Promise(function (resolve, reject) {
     var stripFileName = fileName.split(".")[0];
     var indexFile = `${stripFileName}.index`;
@@ -825,7 +826,7 @@ function createJobMetadata(jobID, bucketName, brainID, file_list, token) {
     ;
 }
 
-function updateJobMetadata(jobID, file_list, jobMetadata, token) {
+function updateJobMetadata(jobID, file_list, jobMetadata, selectedAtlas, token) {
   for (i in file_list) {
     file = file_list[i];
     console.log('-------------------------------------')
@@ -903,19 +904,43 @@ function updateJobMetadata(jobID, file_list, jobMetadata, token) {
   RunningJobs[jobID].jobMetadata = jobMetadata;
 
 
-  saveJobMetaData(jobID, token);
+  saveJobMetaData(jobID, selectedAtlas,token);
 
 }
 
-function saveJobMetaData(jobID, token) {
+function saveJobMetaData(jobID, selectedAtlas, token) {
   var jobMetadata = RunningJobs[jobID].jobMetadata;
   var jobMetadataString = JSON.stringify(jobMetadata);
 
   var fileName = jobMetadata.brainID;
   var strip_file_name = fileName.split(".")[0];
   var jobMetadataFile = `${strip_file_name}.json`;
+
+
   fs.writeFileSync(`runningJobs/${jobID}/${jobMetadataFile}`, jobMetadataString);
-fs.writeFileSync(`runningJobs/${jobID}/${strip_file_name}.waln`, JSON.stringify({ 'atlas': 'mouse' }));  // upload jobMetadata.json to bucket
+  const updatedFileList = Object.entries(jobMetadata.file_list).map(([file, { imageWidth, imageHeight, fileSize, imageExtension, channelFormat, bitDepth }]) => ({
+    'filename': `${strip_file_name}/${file.split(".")[0]}.dzip`,
+    width: parseInt(imageWidth),
+    height: parseInt(imageHeight),
+    fileSize,
+    format: "png",
+    channelFormat,
+    bitDepth,
+    'current': 0,
+    'tilesize': 254,
+    'overlap': 1,
+    'mode': 0
+  }));
+  
+  console.log(updatedFileList)
+  
+
+  fs.writeFileSync(`runningJobs/${jobID}/${strip_file_name}.waln`, JSON.stringify({
+    'atlas': selectedAtlas,
+    'sections': updatedFileList,
+    'bucket': 'space-for-testing-the-nutil-web-applicat',
+
+  }));
   var target_bucket = `${jobMetadata.bucketName}/.nesysWorkflowFiles/Metadata/`
   console.log(jobMetadataFile)
   console.log(`${strip_file_name}.waln`)
@@ -936,7 +961,8 @@ async function convert_list_of_tiffs_to_tarDZI(
   token,
   brainID,
   res,
-  folder_name
+  folder_name,
+  selectedAtlas
 ) {
   file_list_length = file_list.length;
   var jobID = initJob((total_images = file_list_length), bucketName, brainID);
@@ -946,13 +972,13 @@ async function convert_list_of_tiffs_to_tarDZI(
   // loop through list of files and after the previous promise is resolved, start the next one
   for (var i = 0; i < file_list_length; i++) {
     var file_name = file_list[i];
-    await convert_tiff_to_tarDZI(bucketName, file_name, token, jobID, folder_name);
+    await convert_tiff_to_tarDZI(bucketName, file_name, token, jobID, folder_name, selectedAtlas);
     // 
     // updateJob(jobID, 'Done', 100) 
 
   }
 
-  updateJobMetadata(jobID, file_list, RunningJobs[jobID].jobMetadata, token)
+  updateJobMetadata(jobID, file_list, RunningJobs[jobID].jobMetadata, selectedAtlas, token)
 
 
 }

@@ -123,7 +123,7 @@ function createFileChain(targetFilePath) {
 
 
 
-  function FileActionHandler(data, SetFolderChain,curDirPath, SetCurDirPath, setFiles,bucket_name, token) {
+  function FileActionHandler(data, SetFolderChain,curDirPath, SetCurDirPath, setFiles,bucket_name, selectedAtlas, token) {
     // open a file picker UI
     console.log('data', data)
   
@@ -184,6 +184,9 @@ function createFileChain(targetFilePath) {
       // set bucket name
       // acquire brain ID from Input with ID brainID
       var brainID = document.getElementById("brainIDInput").value;
+      // get the value of a select
+      console.log('brainID', brainID)
+      console.log('targetatlas', selectedAtlas)
       
       // request to generate brain
       var xhr = new XMLHttpRequest();
@@ -191,9 +194,9 @@ function createFileChain(targetFilePath) {
 
       console.log("CurDIRPath: " + curDirPath);
   if (process.env.NODE_ENV === 'development') {
-  xhr.open("GET", `${redirect_uri}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`, true);
+  xhr.open("GET", `${redirect_uri}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}&selectedAtlas=${selectedAtlas}`, true);
 } else {
-  xhr.open("GET", `/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}`, true);
+  xhr.open("GET", `/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}&selectedAtlas=${selectedAtlas}`, true);
 }
       // set token to header
       xhr.setRequestHeader("Authorization", `Bearer ${token}`);
@@ -213,10 +216,12 @@ function createFileChain(targetFilePath) {
     var setFiles = args.setFiles;
     var token = args.token;
     var bucket_name = args.currentBucket;
+    var selectedAtlas = args.selectedAtlas;
+    console.log('args', args)
     
-    function passToFileAction (SetFolderChain, curDirPath, SetCurDirPath,setFiles,bucket_name, token) {
+    function passToFileAction (SetFolderChain, curDirPath, SetCurDirPath,setFiles,bucket_name, selectedAtlas,  token) {
         return function (data) {
-            FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath,setFiles,bucket_name, token);
+            FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath,setFiles,bucket_name,  selectedAtlas, token);
         }
     }
 
@@ -252,7 +257,7 @@ function createFileChain(targetFilePath) {
 
       <FileBrowser
         disableDefaultFileActions={true}
-        onFileAction={passToFileAction(SetFolderChain,curDirPath, SetCurDirPath,setFiles, bucket_name, token)}
+        onFileAction={passToFileAction(SetFolderChain,curDirPath, SetCurDirPath,setFiles, bucket_name, selectedAtlas, token)}
         files={files}
 
         defaultFileViewActionId={ChonkyActions.EnableListView.id}

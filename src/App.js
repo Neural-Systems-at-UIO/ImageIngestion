@@ -80,6 +80,7 @@ function App() {
 
 
 
+  const [selectedAtlas, setSelectedAtlas] = useState('');
 
 
   
@@ -95,13 +96,14 @@ function App() {
       setFiles = {setFiles} 
       curDirPath={curDirPath} 
       ></SearchAbleDropdown>
-      <MyChonkyTable token={token} currentBucket={currentBucket} files={files} setFiles = {setFiles} folderChain = {folderChain} SetFolderChain={SetFolderChain} curDirPath={curDirPath} SetCurDirPath={SetCurDirPath}></MyChonkyTable>
+      <MyChonkyTable token={token} currentBucket={currentBucket} files={files} setFiles = {setFiles} selectedAtlas={selectedAtlas}folderChain = {folderChain} SetFolderChain={SetFolderChain} curDirPath={curDirPath} SetCurDirPath={SetCurDirPath}></MyChonkyTable>
       <div id="margin" style={{'height':'1vh',  'backgroundColor':'gray', 'marginBottom':'0.5vh'}}></div>
       <JobProcessor
       token = {token}
       currentBucket={currentBucket}
       CurrentJob = {CurrentJob}
       SetCurrentJob = {SetCurrentJob}
+      setSelectedAtlas = {setSelectedAtlas} 
       ></JobProcessor>
 
       </div>

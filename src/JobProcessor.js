@@ -2,8 +2,7 @@
 import "./JobProcessor.css";
 import { LoadingOutlined, CheckOutlined } from '@ant-design/icons';
 
-import { Progress, Button, Menu, Popover, Input } from "antd";
-import BrainList from "./BrainList"
+import { Progress, Button, Menu, Popover, Input, Modal, Select} from "antd";
 import React, { useEffect, useState } from "react";
 // handle imports for the websocket
 import useWebSocket, { ReadyState } from "react-use-websocket";
@@ -75,29 +74,6 @@ function listFinalisedBrains(bucket_name, setItems, items, token) {
 }
 
 
-// function AddToItems(setItems, items, job, state) {
-
-//   var item_name = job.brainID
-//   var itemID =  job.jobID
-//   console.log('job', job)
-//   var new_list = []
-//   for (var i in items) {
-//     var item_list = []
-//     if (items[i].label == "Processing") {
-//       var icon = <LoadingOutlined />
-//     }
-//     else {
-//       var icon = <CheckOutlined />
-//     }
-//     if (items[i].label == state) {
-//       if (items[i].children) {
-//         var newEntry = getItem(item_name, itemID, icon)
-
-//         newEntry['current_image'] = job.current_image
-//         newEntry['total_images'] = job.total_images
-//         newEntry['progress'] = job.progress
-//         newEntry['status'] = job.status
-
 
 
 function MessageBox(props) {
@@ -110,21 +86,6 @@ function MessageBox(props) {
   } else {
     var head = "Creating your brain"
   }
-// run after render
-// useEffect(() => {
-//   const jobScrollColumn = document.querySelector('#jobScrollColumn');
-//   const updateMaxHeight = () => {
-//     const windowHeight = window.innerHeight; // get the height of the viewport
-//     const jobScrollColumnOffsetTop = jobScrollColumn.offsetTop; // get the offset top of the element
-//     const availableSpace = windowHeight - jobScrollColumnOffsetTop; // calculate the available space
-//     jobScrollColumn.style.maxHeight = availableSpace + 'px'; // set the max-height of the element
-//   };
-//   updateMaxHeight(); // call the function to set the initial max-height
-//   window.addEventListener('resize', updateMaxHeight); // add a resize event listener to update the max-height
-//   return () => {
-//     window.removeEventListener('resize', updateMaxHeight); // remove the resize event listener when the component unmounts
-//   };
-// }, []);
   return (
     // center the content
     <div id="MessageBox">
@@ -172,41 +133,63 @@ function openViewerInNewTab(bucket_name, brain_id) {
   window.open(viewer_url + apiUrl, "_blank");
 }
 // write an arrow function called clickCreateBrain that runs on button click
-function CreateBrain() {
+function CreateBrain(props) {
+  const [brainId, setBrainId] = useState('');
+  const [targetAtlas, setTargetAtlas] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const click = () => {
     // get the button with title "Generate Brain from Files"
     var button = document.querySelector('[title=" "]');
-    ;
-
     button.click();
-    var popover = document.querySelector('.ant-popover');
-    //   popover.style.display = "none";
 
+    setIsModalOpen(false);
   };
+
   const inputClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    var popover = document.querySelector('.ant-popover');
-    // display the popover
-    // popover.style.display = "block";
+    setIsModalOpen(true);
+  };
 
-  
-    // temp close the popover until its clicked again
+  const handleBrainIdChange = (e) => {
+    setBrainId(e.target.value);
+  };
 
+ 
 
+  const handleAtlasChange = (value) => {
+    console.log(`selected ${value}`)
+    setTargetAtlas(value);
+  };
 
+  const handleModalCancel = () => {
+    setIsModalOpen(false);
+  };
 
-  }
+  const isDisabled = !brainId || !targetAtlas;
 
-  var title = "Enter Id for Brain"
-  var content = <div id="inputID"><Input id="brainIDInput" placeholder="Enter Id for Brain" onClick={inputClick} />&nbsp; <Button type="primary" onClick={click}>OK</Button></div>
-  return <Popover placement="topLeft" trigger="click" content={content} title={title}>
-    <Button type="primary">
-      <span id="brainEmoji">🧠</span>&nbsp; &nbsp; Create Brain From Selection
-    </Button>
-  </Popover>;
+  return (
+    <>
+      <Button type="primary" onClick={inputClick}>
+        <span id="brainEmoji">🧠</span>&nbsp; &nbsp; Create Brain From Selection
+      </Button>
+      <Modal title="Please provide some information about your brains" open={isModalOpen} onOk={click} onCancel={handleModalCancel} okButtonProps={{ disabled: isDisabled }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <label htmlFor="brainIDInput" style={{ width: '7.5rem' }}>Brain ID:</label>
+          <Input id="brainIDInput" placeholder="Enter Id for Brain" value={brainId} onChange={handleBrainIdChange} />
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+          <label htmlFor="target-atlas">Target Atlas:</label>
+          <Select id="targetAtlas" value={targetAtlas} onChange={handleAtlasChange} style={{ marginLeft: '1rem', width: '23.5rem' }}>
+            <Option value="WHS SD Rat v4 39um">WHS SD Rat v4 39um</Option>
+            <Option value="WHS_SD_Rat_v3_39um">WHS_SD_Rat_v3_39um</Option>
+            <Option value="ABA_Mouse_CCFv3_2017_25um">ABA_Mouse_CCFv3_2017_25um</Option>
+          </Select>
+        </div>
+      </Modal>
+    </>
+  );
 }
-
 function pollJobStatus(
   jobID,
   bucket_name,
@@ -286,7 +269,7 @@ function getUser(token) {
 }
 
 
-function updateJobList(setItems, items, job, SetCurrentJob) {
+function updateJobList(setItems, items, job, SetCurrentJob, setSelectedKeys, handleMenuClick) {
   var whereIsTheJob = 'Nowhere'
   for (var processChild in items[0].children) {
     if (items[0].children[processChild].key == job.jobID) {
@@ -301,7 +284,13 @@ function updateJobList(setItems, items, job, SetCurrentJob) {
     }
   }
   if (whereIsTheJob == 'Nowhere') {
+
     items = AddToItems(setItems, items, job, "Processing")
+    setSelectedKeys([job.jobID])
+
+    let tempvalue = { key: job.jobID, keyPath: [job.jobID,job.jobID], children: [] }
+    handleMenuClick(tempvalue)
+
   }
 
   if (job.current_image == job.total_images) {
@@ -321,6 +310,7 @@ function updateJobList(setItems, items, job, SetCurrentJob) {
       setItems(items)
     }
     items = AddToItems(setItems, items, job, "Prepared Brains")
+    setSelectedKeys([job.jobID])
   }
   console.log('before we set')
   setItems(items)
@@ -344,6 +334,7 @@ function JobProcessor(props) {
   const [TotalImage, SetTotalImage] = useState(0);
   const [CurrentImage, SetCurrentImage] = useState(0);
   const [jobUpdateVar, setJobUpdateVar] = useState(false);
+  const [selectedKeys, setSelectedKeys] = useState(['1']);
 
   var CurrentJob = props.CurrentJob;
   var SetCurrentJob = props.SetCurrentJob;
@@ -397,10 +388,19 @@ function JobProcessor(props) {
 
     }
   });
+  function handleMenuClick(value) {
+    CurrentJob = value.key;
+    var keyPath = value.keyPath[1];
+    console.log('keypath', value.keyPath);
+    setSelectedKeys(value.keyPath);
+
+    SetCurrentJob(CurrentJob);
+    sendMessage(JSON.stringify({ "CurrentJob": CurrentJob, "KeyPath": keyPath }));
+  }
   useEffect(() => {
     if (jobUpdateVar != false) {
       console.log('runnign effect')
-      items = updateJobList(setItems, items, jobUpdateVar, SetCurrentJob)
+      items = updateJobList(setItems, items, jobUpdateVar, SetCurrentJob, setSelectedKeys, handleMenuClick)
     }
   }, [jobUpdateVar])
 
@@ -455,25 +455,20 @@ function JobProcessor(props) {
 
   }, [bucket_name]);
   console.log('total images: ', TotalImage)
+
   return (
     <div id="jobMenu" style={{minHeight:'10vh'}}>
       <div>
 
-        <CreateBrain />
+        <CreateBrain setSelectedAtlas={props.setSelectedAtlas} setSelectedKeys={setSelectedKeys} handleMenuClick={handleMenuClick} items={items}/>
 
         <div id="jobScrollColumn">
 
           <Menu
-            onClick={(value) => {
-              CurrentJob = value.key;
-              var keyPath = value.keyPath[1]
+            onClick={handleMenuClick}
 
-              SetCurrentJob(CurrentJob);
-              sendMessage(JSON.stringify({ "CurrentJob": CurrentJob, "KeyPath": keyPath }));
-            }
-            }
 
-            defaultSelectedKeys={['1']}
+            selectedKeys={selectedKeys}
             defaultOpenKeys={['sub1', 'sub2']}
             mode="inline"
             items={items}
@@ -541,7 +536,6 @@ function AddToItems(setItems, items, job, state) {
 
 
   items = new_list
-  console.log('items', items)
   setItems(items)
   return items
 }
