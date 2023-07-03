@@ -938,7 +938,7 @@ function saveJobMetaData(jobID, selectedAtlas, token) {
   fs.writeFileSync(`runningJobs/${jobID}/${strip_file_name}.waln`, JSON.stringify({
     'atlas': selectedAtlas,
     'sections': updatedFileList,
-    'bucket': 'space-for-testing-the-nutil-web-applicat',
+    'bucket': jobMetadata.bucketName,
 
   }));
   var target_bucket = `${jobMetadata.bucketName}/.nesysWorkflowFiles/Metadata/`
