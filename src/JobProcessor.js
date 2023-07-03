@@ -143,6 +143,9 @@ function CreateBrain(props) {
     button.click();
 
     setIsModalOpen(false);
+  // reset the brainId and targetAtlas input fields
+  setBrainId('');
+  setTargetAtlas('');
   };
 
   const inputClick = (e) => {
