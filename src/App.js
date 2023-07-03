@@ -85,7 +85,7 @@ function App() {
 
   
 
-
+  const  [createBrainActive, setCreateBrainActive]  = useState(false);
   
   return (
     <div>
@@ -96,7 +96,7 @@ function App() {
       setFiles = {setFiles} 
       curDirPath={curDirPath} 
       ></SearchAbleDropdown>
-      <MyChonkyTable token={token} currentBucket={currentBucket} files={files} setFiles = {setFiles} selectedAtlas={selectedAtlas}folderChain = {folderChain} SetFolderChain={SetFolderChain} curDirPath={curDirPath} SetCurDirPath={SetCurDirPath}></MyChonkyTable>
+      <MyChonkyTable token={token} currentBucket={currentBucket} files={files} setFiles = {setFiles} selectedAtlas={selectedAtlas}folderChain = {folderChain} SetFolderChain={SetFolderChain} curDirPath={curDirPath} SetCurDirPath={SetCurDirPath} setCreateBrainActive={setCreateBrainActive}></MyChonkyTable>
       <div id="margin" style={{'height':'1vh',  'backgroundColor':'gray', 'marginBottom':'0.5vh'}}></div>
       <JobProcessor
       token = {token}
@@ -104,6 +104,7 @@ function App() {
       CurrentJob = {CurrentJob}
       SetCurrentJob = {SetCurrentJob}
       setSelectedAtlas = {setSelectedAtlas} 
+      createBrainActive = {createBrainActive}
       ></JobProcessor>
 
       </div>

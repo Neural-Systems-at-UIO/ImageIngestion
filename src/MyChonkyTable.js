@@ -52,22 +52,32 @@ const UploadFolder = defineFileAction({
   },
 });
 
+const checkForselectedFiles = defineFileAction({
+  id: "checkForselectedFiles",
+  requiresSelection: false,
+  button: {
+    name: "  ",
+    toolbar: true
+    }
+  }
+);
 
 
 
 
 const myFileActions = [
+  checkForselectedFiles,
   CreateBrainFromFiles,
   ChonkyActions.CreateFolder,
   ChonkyActions.UploadFiles,
   UploadFolder,
-
   ChonkyActions.DownloadFiles,
   ChonkyActions.DeleteFiles,
   ChonkyActions.EnableListView,
   ChonkyActions.SelectAllFiles,
   ChonkyActions.ClearSelection,
 ];
+
 
 const uploadFileAction = myFileActions.find(action => action.id === ChonkyActions.UploadFiles.id);
 uploadFileAction.button.group = "";
@@ -91,6 +101,9 @@ clearSelectionAction.button.toolbar = false;
 clearSelectionAction.hotkeys = ["esc"];
 clearSelectionAction.button.group = "";
 const CreateBrainFromFilesAction = myFileActions.find(action => action.id === CreateBrainFromFiles.id);
+const checkForselectedFilesAction = myFileActions.find(action => action.id === checkForselectedFiles.id);
+
+
 // CreateBrainFromFilesAction.button.icon = "brainEmoji";
 
 
@@ -124,10 +137,26 @@ function createFileChain(targetFilePath) {
 
 
 
-function FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas, token) {
+function FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas,setCreateBrainActive, token) {
   // open a file picker UI
   console.log('data', data)
-
+  if (data.id == "mouse_click_file" || data.id == "clear_selection"){
+    console.log('mouse_click_file')
+    const button = document.querySelector('[title="  "]');
+    button.click();
+    
+  }
+  if (data.id == "checkForselectedFiles") {
+    console.log('checkForselectedFiles')
+    console.log(data.state.selectedFiles)
+    if (data.state.selectedFiles.length > 0) {
+      setCreateBrainActive(true);
+    }
+    else {
+      setCreateBrainActive(false);
+    }
+  }
+  
   if (data.id == "open_files" && data.payload.targetFile.isDir) {
     var targetFile = data.payload.targetFile;
     var targetFileChain = createFileChain(targetFile.id);
@@ -221,11 +250,12 @@ function MyChonkyTable(args) {
   var token = args.token;
   var bucket_name = args.currentBucket;
   var selectedAtlas = args.selectedAtlas;
+  var setCreateBrainActive = args.setCreateBrainActive;
   console.log('args', args)
 
   function passToFileAction(SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas, token) {
     return function (data) {
-      FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas, token);
+      FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas, setCreateBrainActive,token);
     }
   }
 
@@ -263,6 +293,7 @@ function MyChonkyTable(args) {
         disableDefaultFileActions={true}
         onFileAction={passToFileAction(SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas, token)}
         files={files}
+
 
         defaultFileViewActionId={ChonkyActions.EnableListView.id}
         fileActions={myFileActions}

@@ -2,7 +2,7 @@
 import "./JobProcessor.css";
 import { LoadingOutlined, CheckOutlined } from '@ant-design/icons';
 
-import { Progress, Button, Menu, Popover, Input, Modal, Select} from "antd";
+import { Progress, Button, Menu, Popover, Input, Modal, Select, Tooltip} from "antd";
 import React, { useEffect, useState } from "react";
 // handle imports for the websocket
 import useWebSocket, { ReadyState } from "react-use-websocket";
@@ -80,12 +80,16 @@ function MessageBox(props) {
 
   if (props.TotalImage == props.CurrentImage && props.TotalImage != 0) {
     var head = "Brain Created"
+    var body = ""
   }
   else if (props.TotalImage == 0) {
     var head = "Select Images and create your brain"
+    var body = "Use shift or ctrl to select multiple images"
   } else {
     var head = "Creating your brain"
+    var body = ""
   }
+
   return (
     // center the content
     <div id="MessageBox">
@@ -105,6 +109,7 @@ function MessageBox(props) {
       >
 
         <h2>{head}</h2>
+        <p>{body}</p>
         <div id="messageAndViewer">
           <p>{props.message}</p>
           {/* conditionally render a button */}
@@ -170,12 +175,40 @@ function CreateBrain(props) {
   };
 
   const isDisabled = !brainId || !targetAtlas;
-
+  //  render different tooltip based on props.createBrainActive
+  function tooltipButton(props) {
+    if (props.createBrainActive) {
+      return (
+          <Button
+            type="primary"
+            onClick={inputClick}
+            disabled={!props.createBrainActive}
+          >
+            <span id="brainEmoji">🧠</span>&nbsp; &nbsp; Create Brain From
+            Selection
+          </Button>
+      );
+    } else {
+      return (
+        <Tooltip title="Please select files to create a brain">
+          <Button
+            type="primary"
+            onClick={inputClick}
+            disabled={!props.createBrainActive}
+          >
+            <span id="brainEmoji">🧠</span>&nbsp; &nbsp; Create Brain From
+            Selection
+          </Button>
+        </Tooltip>
+      );
+    }
+  }
   return (
     <>
-      <Button type="primary" onClick={inputClick}>
-        <span id="brainEmoji">🧠</span>&nbsp; &nbsp; Create Brain From Selection
-      </Button>
+        <span>
+
+          {tooltipButton(props)}
+      </span>
       <Modal title="Please provide some information about your brains" open={isModalOpen} onOk={click} onCancel={handleModalCancel} okButtonProps={{ disabled: isDisabled }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <label htmlFor="brainIDInput" style={{ width: '7.5rem' }}>Brain ID:</label>
@@ -458,12 +491,12 @@ function JobProcessor(props) {
 
   }, [bucket_name]);
   console.log('total images: ', TotalImage)
-
+  console.log('createBrainActive: ', props.createBrainActive)
   return (
     <div id="jobMenu" style={{minHeight:'10vh'}}>
       <div>
 
-        <CreateBrain setSelectedAtlas={props.setSelectedAtlas} setSelectedKeys={setSelectedKeys} handleMenuClick={handleMenuClick} items={items}/>
+        <CreateBrain setSelectedAtlas={props.setSelectedAtlas} setSelectedKeys={setSelectedKeys} handleMenuClick={handleMenuClick} items={items} createBrainActive={props.createBrainActive}/>
 
         <div id="jobScrollColumn">
 
