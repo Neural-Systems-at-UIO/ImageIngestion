@@ -140,7 +140,6 @@ function openViewerInNewTab(bucket_name, brain_id) {
 // write an arrow function called clickCreateBrain that runs on button click
 function CreateBrain(props) {
   const [brainId, setBrainId] = useState('');
-  const [targetAtlas, setTargetAtlas] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const click = () => {
     // get the button with title "Generate Brain from Files"
@@ -150,7 +149,7 @@ function CreateBrain(props) {
     setIsModalOpen(false);
   // reset the brainId and targetAtlas input fields
   setBrainId('');
-  setTargetAtlas('');
+  props.setSelectedAtlas('');
   };
 
   const inputClick = (e) => {
@@ -167,14 +166,14 @@ function CreateBrain(props) {
 
   const handleAtlasChange = (value) => {
     console.log(`selected ${value}`)
-    setTargetAtlas(value);
+    props.setSelectedAtlas(value);
   };
 
   const handleModalCancel = () => {
     setIsModalOpen(false);
   };
 
-  const isDisabled = !brainId || !targetAtlas;
+  const isDisabled = !brainId || !props.selectedAtlas;
   //  render different tooltip based on props.createBrainActive
   function tooltipButton(props) {
     if (props.createBrainActive) {
@@ -216,7 +215,7 @@ function CreateBrain(props) {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
           <label htmlFor="target-atlas">Target Atlas:</label>
-          <Select id="targetAtlas" value={targetAtlas} onChange={handleAtlasChange} style={{ marginLeft: '1rem', width: '23.5rem' }}>
+          <Select id="targetAtlas" value={props.selectedAtlas} onChange={handleAtlasChange} style={{ marginLeft: '1rem', width: '23.5rem' }}>
             <Option value="WHS SD Rat v4 39um">WHS SD Rat v4 39um</Option>
             <Option value="WHS_SD_Rat_v3_39um">WHS_SD_Rat_v3_39um</Option>
             <Option value="ABA_Mouse_CCFv3_2017_25um">ABA_Mouse_CCFv3_2017_25um</Option>
@@ -250,6 +249,9 @@ if (process.env.NODE_ENV === 'development') {
   xhr.setRequestHeader("Authorization", "Bearer " + token);
   xhr.send();
   xhr.onreadystatechange = function () {
+    if (xhr.staus == 500 && xhr.readyState == 4) {
+      return
+    }
     if (xhr.status == 200 && xhr.readyState == 4) {
       var jobStatus = xhr.responseText;
 
@@ -496,7 +498,7 @@ function JobProcessor(props) {
     <div id="jobMenu" style={{minHeight:'10vh'}}>
       <div>
 
-        <CreateBrain setSelectedAtlas={props.setSelectedAtlas} setSelectedKeys={setSelectedKeys} handleMenuClick={handleMenuClick} items={items} createBrainActive={props.createBrainActive}/>
+        <CreateBrain setSelectedAtlas={props.setSelectedAtlas} selectedAtlas={props.selectedAtlas} setSelectedKeys={setSelectedKeys} handleMenuClick={handleMenuClick} items={items} createBrainActive={props.createBrainActive}/>
 
         <div id="jobScrollColumn">
 

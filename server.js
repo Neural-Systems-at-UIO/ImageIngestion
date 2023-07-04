@@ -251,6 +251,7 @@ app.get("/tiffListToTarDZI", function (req, res) {
   var token = req.headers.authorization;
   var folder_name = req.query.folderName;
   var selectedAtlas = req.query.selectedAtlas;
+
   console.log('folder_name', folder_name)
 
 
@@ -511,7 +512,6 @@ function ReadJobMetadata(bucketName, brainID, token, res) {
           return response.json()
         })
         .then((json) => {
-          console.log(json)
           
           var return_json = {
             status: "Done",
@@ -522,10 +522,11 @@ function ReadJobMetadata(bucketName, brainID, token, res) {
             current_image: Object.keys(json.file_list).length,
             total_images: Object.keys(json.file_list).length,
           }
+
           res.send(return_json);
         })
         .catch((error) => {
-          console.log('error: ' + error)
+          res.status(500).send({ error: 'no metadata found' });
         });
     })
 }
