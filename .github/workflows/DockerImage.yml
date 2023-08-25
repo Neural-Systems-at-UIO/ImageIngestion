@@ -14,5 +14,5 @@ jobs:
       - name: Build and push prod Docker image
         run: |
           echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin docker-registry.ebrains.eu
-          docker build -t docker-registry.ebrains.eu/imageingestion/imageingestionprod:latest .
-          docker push docker-registry.ebrains.eu/imageingestion/imageingestionprod:latest 
+          docker build -t docker-registry.ebrains.eu/workbench/imageingestionprod:latest .
+          docker push docker-registry.ebrains.eu/workbench/imageingestionprod:latest 
