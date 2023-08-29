@@ -1,5 +1,3 @@
-# Build node image from Node Docker Hub
-FROM node:16
 
 # Build node image from Node Docker Hub
 FROM node:16
@@ -8,8 +6,8 @@ FROM node:16
 RUN apt-get update && \
     apt-get install -y openjdk-11-jdk zip imagemagick
 
-# Make app directory in container
-RUN mkdir /app
+# Create a non-privileged user
+RUN adduser --disabled-password --gecos "" myuser
 
 # Make app directory in container
 RUN mkdir /app
@@ -17,15 +15,8 @@ RUN mkdir /app
 # Identify working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Run the app as a non-privileged user
-RUN chown -R 1001:0 . && chmod -R gu+s+rw .
-USER 1001
+# Copy the rest of the application files
+COPY . .
 
 RUN chown -R 1001:0 . && chmod -R gu+s+rw .
 USER 1001
