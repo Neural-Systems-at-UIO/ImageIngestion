@@ -108,8 +108,10 @@ function MessageBox(props) {
 
       >
 
-        <h2>{head}</h2>
-        <p>{body}</p>
+        <div>
+        <h2 >{head}</h2>
+        <p >{body}</p>
+        </div>
         <div id="messageAndViewer">
           <p>{props.message}</p>
           {/* conditionally render a button */}

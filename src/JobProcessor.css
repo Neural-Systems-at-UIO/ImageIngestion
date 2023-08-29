@@ -4,8 +4,9 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  width: 30vw;
   height:20vh;
+  width: 70vw;
+
   /* padding: 4rem; */
 }
 /* target custom component Progress */
