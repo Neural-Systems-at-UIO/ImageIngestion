@@ -84,6 +84,7 @@ app.get("/bucketurl/", (req, res) => {
 app.get("/auth/", (req, res) => {
 
   var code = req.query.code;
+  
 
   get_token(code, res);
 });
@@ -675,17 +676,6 @@ function getUploadLink(bucketName, file_name, token) {
 }
 
 
-// app.get("/getUploadLink", function (req, res) {
-//   var bucketName = req.query.bucketName;
-//   var file_name = req.query.file_name;
-//   var token = req.headers.authorization;
-//   getUploadLink(bucketName, file_name, token).then(function (response) {
-//     res.send(response.data);
-//   });
-// });
-
-
-
 
 
 function curlToBucket(target_url, file_name, jobID, proj_file) {
@@ -839,69 +829,20 @@ function updateJobMetadata(jobID, file_list, jobMetadata, selectedAtlas, token) 
     var strip_file_name = file.split(".")[0];
     // get image width, note that file could be .jpg .png .tif, etc
     // only run on prod
-    if (process.env.NODE_ENV == "development") {
+    
 
-      
-      var cmd = `squashfs-root/AppRun identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var imageWidth = execSync(cmd).toString().trim();
-      // get image height
-      var cmd = `squashfs-root/AppRun identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var imageHeight = execSync(cmd).toString().trim();
-      // get file size
-      var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
-      var fileSize = execSync(cmd).toString().trim();
-      // get number of channels
-      var cmd = `squashfs-root/AppRun identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var numChannels = execSync(cmd).toString().trim();
+    target = `${strip_file_name}.dzi`
 
-      // get bit depth
-      var cmd = `squashfs-root/AppRun identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var bitDepth = execSync(cmd).toString().trim();
-    }
-    else {
-      var cmd = `identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var imageWidth = execSync(cmd).toString().trim();
-      // get image height
-      var cmd = `identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var imageHeight = execSync(cmd).toString().trim();
-      // get file size
-      var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
-      var fileSize = execSync(cmd).toString().trim();
-      // get number of channels
-      var cmd = `identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var numChannels = execSync(cmd).toString().trim();
+    const xmlString = fs.readFileSync(`runningJobs/${jobID}/${strip_file_name}/${target}`, 'utf8');
 
-      // get bit depth
-      var cmd = `identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      var bitDepth = execSync(cmd).toString().trim();
-      // // only run if image is not tiff
-      // if (file.split(".")[1] != "tif") {
-      //   var cmd = `magick identify -format "%w" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      //   var imageWidth = execSync(cmd).toString().trim();
-      //   // get image height
-      //   var cmd = `magick identify  -format "%h" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      //   var imageHeight = execSync(cmd).toString().trim();
-      //   // get file size
-      //   var cmd = `du -h runningJobs/${jobID}/${strip_file_name}/${file} | cut -f1`;
-      //   var fileSize = execSync(cmd).toString().trim();
-      //   // get number of channels
-      //   var cmd = `magick identify  -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      //   var numChannels = execSync(cmd).toString().trim();
+    // Extract the width and height attributes from the Size element
+    const sizeMatch = xmlString.match(/<Size Width="(\d+)" Height="(\d+)" \/>/);
+    const imageWidth = parseInt(sizeMatch[1]);
+    const imageHeight = parseInt(sizeMatch[2]);
+    
 
-      //   // get bit depth
-      //   var cmd = `magick identify  -format "%[depth]" runningJobs/${jobID}/${strip_file_name}/${file}`;
-      //   var bitDepth = execSync(cmd).toString().trim();
-      // }
-      // else {
-      //   var imageWidth = 'uknown due to openshift not having tiff support'
-      //   var imageHeight = 'uknown due to openshift not having tiff support'
-      //   var fileSize = 'uknown due to openshift not having tiff support'
-      //   var numChannels = 'uknown due to openshift not having tiff support'
-      //   var bitDepth = 'uknown due to openshift not having tiff support'
-      // }
+  
 
-
-    }
 
     // get image extension
     var imageExtension = file.split(".")[1];
@@ -910,10 +851,7 @@ function updateJobMetadata(jobID, file_list, jobMetadata, selectedAtlas, token) 
     jobMetadata.file_list[file] = {
       imageWidth: imageWidth,
       imageHeight: imageHeight,
-      fileSize: fileSize,
       imageExtension: imageExtension,
-      channelFormat: numChannels,
-      bitDepth: bitDepth
     };
 
   }
@@ -934,14 +872,12 @@ function saveJobMetaData(jobID, selectedAtlas, token) {
 
 
   fs.writeFileSync(`runningJobs/${jobID}/${jobMetadataFile}`, jobMetadataString);
-  const updatedFileList = Object.entries(jobMetadata.file_list).map(([file, { imageWidth, imageHeight, fileSize, imageExtension, channelFormat, bitDepth }]) => ({
+  const updatedFileList = Object.entries(jobMetadata.file_list).map(([file, { imageWidth, imageHeight,  imageExtension }]) => ({
     'filename': `${strip_file_name}/${file.split(".")[0]}.dzip`,
     width: parseInt(imageWidth),
     height: parseInt(imageHeight),
-    fileSize,
     format: "png",
-    channelFormat,
-    bitDepth,
+
     'current': 0,
     'tilesize': 254,
     'overlap': 1,
@@ -1036,7 +972,7 @@ function iterate_over_bucket_files(bucketname, folder_name) {
 var token_ = null;
 
 function get_token(code, res) {
-
+  console.log('getting token')
   var target_url =
     "https://iam.ebrains.eu/auth/realms/hbp/protocol/openid-connect/token";
   //
@@ -1047,6 +983,7 @@ function get_token(code, res) {
     var redirect_uri = process.env.REACT_APP_URL;
 
   }
+
   const params = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: process.env.CLIENT_ID,

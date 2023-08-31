@@ -21,7 +21,7 @@ export function getToken(current_token) {
 
     }
 
-
+    console.log("NODE_ENV", process.env.NODE_ENV)
     xhr.send();
     xhr.onreadystatechange = function () {
       

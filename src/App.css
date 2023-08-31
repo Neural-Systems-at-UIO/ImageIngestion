@@ -1,7 +1,7 @@
 .App {
   text-align: center;
   /* overflow: hidden; */ /* remove this line */
-  min-height: 100vh; /* add this line */
+  /* min-height: 100vh; add this line */
 }
 
 

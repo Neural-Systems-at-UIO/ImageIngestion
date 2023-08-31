@@ -1,4 +1,3 @@
-
 # Build node image from Node Docker Hub
 FROM node:16
 
