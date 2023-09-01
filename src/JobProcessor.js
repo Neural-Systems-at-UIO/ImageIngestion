@@ -282,6 +282,7 @@ function getUser(token) {
   return new Promise((resolve, reject) => {
     var xhr = new XMLHttpRequest();
     let redirect_uri = process.env.REACT_APP_URL;
+    console.log('redirect_uri', redirect_uri)
 
     if (process.env.NODE_ENV === 'development') {
       xhr.open("GET", `${redirect_uri}/getUser`, true);

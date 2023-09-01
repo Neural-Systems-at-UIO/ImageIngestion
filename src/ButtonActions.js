@@ -60,7 +60,7 @@ export function DeleteFiles(fileActionDispatch, curDirPath, setFiles, bucket_nam
     };
   }
 }
-export function UploadFiles(curDirPath, setFiles,bucket_name,folder, token) {
+export function UploadFiles(curDirPath, setFiles,bucket_name,folder, setProgressActive, setProgressPercent, token) {
   if (folder == false) {
     var fileInput = document.getElementById("hiddenFileUploadButton");
   }
@@ -71,11 +71,11 @@ export function UploadFiles(curDirPath, setFiles,bucket_name,folder, token) {
   fileInput.click();
   fileInput.addEventListener("change", (e) => {
     console.log(fileInput)
+    let finished = 0;
+    setProgressActive(true);
     for (let i = 0; i < fileInput.files.length; i++) {
-      
       const file = fileInput.files[i];
       const xhr = new XMLHttpRequest();
-      
       // put request to upload file
       if (folder == false) {
       xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file.name}`, true);
@@ -84,7 +84,7 @@ export function UploadFiles(curDirPath, setFiles,bucket_name,folder, token) {
         xhr.open("PUT", `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file.webkitRelativePath}`, true);
       }
 
-      
+      console.log("URL", `https://data-proxy.ebrains.eu/api/v1/buckets/${bucket_name}/${file.name}`)
       // add query strings
       // set a uthorization header
       xhr.setRequestHeader("Authorization", "Bearer " + token);
@@ -92,11 +92,15 @@ export function UploadFiles(curDirPath, setFiles,bucket_name,folder, token) {
       xhr.send();
       xhr.onreadystatechange = function () {
         if (xhr.status == 200 && xhr.readyState == 4) {
+          // calculate progress
+
+          // repsonse
+          console.log('response', xhr.response)
           // log success
           // post image to bucket
           var target_url = xhr.responseText;
           
-          
+          console.log('target_url', target_url)
           // convert to json
           target_url = JSON.parse(target_url);
           target_url = target_url.url;
@@ -113,7 +117,16 @@ export function UploadFiles(curDirPath, setFiles,bucket_name,folder, token) {
           xhr2.onreadystatechange = function () {
             if (xhr2.status == 201 && xhr2.readyState == 4) {
               // log success
-              
+              finished = finished + 1;
+
+              var progress = (finished) / fileInput.files.length;
+
+              progress = progress * 100;
+              // float to int
+              progress = Math.round(progress);
+              console.log('percent', progress)
+              setProgressPercent(progress);
+
 
               ListBucketFiles(
                 setFiles,
@@ -121,6 +134,7 @@ export function UploadFiles(curDirPath, setFiles,bucket_name,folder, token) {
                 curDirPath,
                 token
               );
+      
             } else {
               // log error
               
