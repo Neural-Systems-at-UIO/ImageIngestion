@@ -80,7 +80,7 @@ def indextar(dbtarfile,indexfile):
                         print('ETA: '+str(int(eta))+'s (estimate '+str(int(estimate))+'s)')
     print('done.')
 
-def lookup(dbtarfile,indexfile,path):
+def lookup(dbtarfile,indexfile,Epath):
     with open(dbtarfile, 'rb') as tar:
         with  open(indexfile, 'r') as outfile:
             for line in outfile.readlines():

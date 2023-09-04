@@ -118,6 +118,7 @@ function App() {
 
   const [selectedAtlas, setSelectedAtlas] = useState('');
   const [progressActive, setProgressActive] = useState(false);
+  const [uploadFailed, setUploadFailed] = useState(false);
   const [progressPercent, setProgressPercent] = useState(0);
   
 
@@ -147,7 +148,16 @@ function App() {
           </div>
       </div>
     )}
-    
+    {uploadFailed && (
+      <div className="progress">
+        <div className="progress-box">
+          <div className="progress-text">
+            <h3>At least one of your filenames does not  include _sXXX (a number corresponding to its cutting index). Please fix this and try again</h3>
+            </div>
+          <Button onClick={() => setUploadFailed(false)}>OK</Button>
+          </div>
+      </div>
+    )}
       <SearchAbleDropdown
       currentBucket={currentBucket}
       SetCurrentBucket={SetCurrentBucket}
@@ -155,7 +165,7 @@ function App() {
       setFiles = {setFiles} 
       curDirPath={curDirPath} 
       ></SearchAbleDropdown>
-      <MyChonkyTable token={token} currentBucket={currentBucket} files={files} setFiles = {setFiles} selectedAtlas={selectedAtlas} folderChain = {folderChain} SetFolderChain={SetFolderChain} curDirPath={curDirPath} SetCurDirPath={SetCurDirPath} setCreateBrainActive={setCreateBrainActive} setProgressPercent={setProgressPercent} setProgressActive={setProgressActive}></MyChonkyTable>
+      <MyChonkyTable token={token} currentBucket={currentBucket} files={files} setFiles = {setFiles} selectedAtlas={selectedAtlas} folderChain = {folderChain} SetFolderChain={SetFolderChain} curDirPath={curDirPath} SetCurDirPath={SetCurDirPath} setCreateBrainActive={setCreateBrainActive} setProgressPercent={setProgressPercent} setProgressActive={setProgressActive} setUploadFailed={setUploadFailed}></MyChonkyTable>
       <div id="bottom_of_page" style={{position:'absolute', bottom:0, width:'100vw', minHeight:'30vh'}}>
       <div id="margin" style={{'height':'1vh',  'backgroundColor':'gray', 'marginBottom':'0.5vh'}}></div>
       <JobProcessor
@@ -166,6 +176,7 @@ function App() {
       selectedAtlas = {selectedAtlas}
       setSelectedAtlas = {setSelectedAtlas} 
       createBrainActive = {createBrainActive}
+      setUploadFailed={setUploadFailed}
       ></JobProcessor>
 </div>
       </div>

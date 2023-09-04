@@ -42,7 +42,7 @@ public class FilesArchiverFactory {
     public static FilesArchiver createFromURI(String uri)
             throws IOException {
         try {
-            URI outputURI = new URI(uri);
+            URI outputURI = new URI(uri.replace(" ", "%20"));
             String scheme = outputURI.getScheme();
             logger.info("Got scheme " + scheme + " for URI " + uri);
 

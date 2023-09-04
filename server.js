@@ -872,19 +872,23 @@ function saveJobMetaData(jobID, selectedAtlas, token) {
 
 
   fs.writeFileSync(`runningJobs/${jobID}/${jobMetadataFile}`, jobMetadataString);
-  const updatedFileList = Object.entries(jobMetadata.file_list).map(([file, { imageWidth, imageHeight,  imageExtension }]) => ({
-    'filename': `${strip_file_name}/${file.split(".")[0]}.dzip`,
-    width: parseInt(imageWidth),
-    height: parseInt(imageHeight),
-    format: "png",
-
-    'current': 0,
-    'tilesize': 254,
-    'overlap': 1,
-    'mode': 0
-  }));
-  
-  console.log(updatedFileList)
+  const updatedFileList = Object.entries(jobMetadata.file_list)
+  .map(([file, { imageWidth, imageHeight }]) => {
+    const snrMatch = file.match(/(?<=_s)\d+/);
+    const snr = snrMatch ? parseInt(snrMatch[0]) : undefined;
+    return {
+      'filename': `${strip_file_name}/${file.split(".")[0]}.dzip`,
+      width: parseInt(imageWidth),
+      height: parseInt(imageHeight),
+      snr: snr,
+      format: "png",
+      'current': 0,
+      'tilesize': 254,
+      'overlap': 1,
+      'mode': 0
+    };
+  })
+  .sort((a, b) => a.snr - b.snr);
   
 
   fs.writeFileSync(`runningJobs/${jobID}/${strip_file_name}.waln`, JSON.stringify({
