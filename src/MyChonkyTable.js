@@ -12,7 +12,7 @@ import { useEventSource } from "react-use-websocket";
 // import a dropdown menu from antd
 
 
-setChonkyDefaults({ iconComponent: ChonkyIconFA });
+setChonkyDefaults({ iconComponent: ChonkyIconFA,    disableDragAndDrop: true });
 
 
 const myEmojiMap = {
@@ -68,10 +68,10 @@ const checkForselectedFiles = defineFileAction({
 const myFileActions = [
   checkForselectedFiles,
   CreateBrainFromFiles,
-  ChonkyActions.CreateFolder,
+  // ChonkyActions.CreateFolder,
   ChonkyActions.UploadFiles,
   UploadFolder,
-  ChonkyActions.DownloadFiles,
+  // ChonkyActions.DownloadFiles,
   ChonkyActions.DeleteFiles,
   ChonkyActions.EnableListView,
   ChonkyActions.SelectAllFiles,
@@ -85,8 +85,8 @@ const uploadFolderAction = myFileActions.find(action => action.id === UploadFold
 uploadFolderAction.button.group = "";
 uploadFolderAction.button.icon = uploadFileAction.button.icon;
 
-const downloadFileAction = myFileActions.find(action => action.id === ChonkyActions.DownloadFiles.id);
-downloadFileAction.button.group = "";
+// const downloadFileAction = myFileActions.find(action => action.id === ChonkyActions.DownloadFiles.id);
+// downloadFileAction.button.group = "";
 const deleteFileAction = myFileActions.find(action => action.id === ChonkyActions.DeleteFiles.id);
 deleteFileAction.button.group = "";
 const enableListViewAction = myFileActions.find(action => action.id === ChonkyActions.EnableListView.id);
