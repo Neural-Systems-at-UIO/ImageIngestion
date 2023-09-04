@@ -137,7 +137,7 @@ function createFileChain(targetFilePath) {
 
 
 
-function FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas,setCreateBrainActive, setProgressActive, setProgressPercent, token) {
+function FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas,setCreateBrainActive, setProgressActive, setProgressPercent,setUploadFailed, token) {
   // open a file picker UI
   console.log('data', data)
   if (data.id == "mouse_click_file" || data.id == "clear_selection"){
@@ -188,14 +188,15 @@ function FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setF
 
   if (data.id == "upload_files") {
     // open
+    console.log('setUploadFailed', setUploadFailed)
 
-    UploadFiles(curDirPath, setFiles, bucket_name, false, setProgressActive, setProgressPercent, token);
+    UploadFiles(curDirPath, setFiles, bucket_name, false, setProgressActive, setProgressPercent, setUploadFailed,token);
    
 
   }
   if (data.id == "UploadFolder") {
     // open
-    UploadFiles(curDirPath, setFiles, bucket_name, true, setProgressActive, setProgressPercent, token);
+    UploadFiles(curDirPath, setFiles, bucket_name, true, setProgressActive, setProgressPercent,setUploadFailed, token);
 
 
   }
@@ -258,11 +259,12 @@ function MyChonkyTable(args) {
   var setCreateBrainActive = args.setCreateBrainActive;
   var setProgressActive = args.setProgressActive;
   var setProgressPercent = args.setProgressPercent;
-  console.log('args', args)
+  var setUploadFailed = args.setUploadFailed;
 
-  function passToFileAction(SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas, setProgressActive, setProgressPercent, token) {
+
+  function passToFileAction(SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas, setProgressActive, setProgressPercent, setUploadFailed,token) {
     return function (data) {
-      FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas, setCreateBrainActive, setProgressActive,setProgressPercent, token);
+      FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas, setCreateBrainActive, setProgressActive,setProgressPercent, setUploadFailed,token);
     }
   }
 
@@ -298,7 +300,7 @@ function MyChonkyTable(args) {
 
       <FileBrowser
         disableDefaultFileActions={true}
-        onFileAction={passToFileAction(SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas,  setProgressActive,setProgressPercent, token)}
+        onFileAction={passToFileAction(SetFolderChain, curDirPath, SetCurDirPath, setFiles, bucket_name, selectedAtlas,  setProgressActive,setProgressPercent, setUploadFailed, token)}
         files={files}
 
 

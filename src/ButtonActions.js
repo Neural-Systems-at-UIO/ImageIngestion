@@ -60,7 +60,8 @@ export function DeleteFiles(fileActionDispatch, curDirPath, setFiles, bucket_nam
     };
   }
 }
-export function UploadFiles(curDirPath, setFiles,bucket_name,folder, setProgressActive, setProgressPercent, token) {
+export function UploadFiles(curDirPath, setFiles,bucket_name,folder, setProgressActive, setProgressPercent, setUploadFailed, token) {
+  console.log('setUploadFailed', setUploadFailed)
   if (folder == false) {
     var fileInput = document.getElementById("hiddenFileUploadButton");
   }
@@ -72,9 +73,20 @@ export function UploadFiles(curDirPath, setFiles,bucket_name,folder, setProgress
   fileInput.addEventListener("change", (e) => {
     console.log(fileInput)
     let finished = 0;
+    
+    for (let i = 0; i < fileInput.files.length; i++) {
+      let file = fileInput.files[i];
+
+      if (!file.name.match(/(?<=_s)\d+/)) {
+        setUploadFailed(true);
+        return;
+        
+      }
+    }
+
     setProgressActive(true);
     for (let i = 0; i < fileInput.files.length; i++) {
-      const file = fileInput.files[i];
+      let file = fileInput.files[i];
       const xhr = new XMLHttpRequest();
       // put request to upload file
       if (folder == false) {
