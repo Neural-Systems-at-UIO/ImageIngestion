@@ -68,6 +68,10 @@ public class Main {
                 "Tile format such as jpg, png "
                 + "(default to the same format than the input)");
         options.addOption(tileFormatOption);
+        
+        Option forceRgbOption = new Option("rgb", "forceRGB", false,
+                "The output will be forced to RGB888 discarding the input image properties.");
+        options.addOption(forceRgbOption);
 
         Option parallelismOption = new Option("p", "parallelism", true,
                 "Number of threads to use (default to number of cpu cores).");
@@ -75,11 +79,13 @@ public class Main {
         options.addOption(parallelismOption);
 
         Option inputCacheRatioOption = new Option("icr", "inputCacheRatio", true,
-                "Ratio of the input image which can be kept in cache "
-                + "at any time. By default, the entire input image is kept "
-                + "in cache (value 1). This is the fastest but consume "
-                + "more memory. Set to 0 to disable the cache (will be slow "
-                + "especially with compressed images such as jpg and png).");
+                "Ratio [0, 1] of the input image which can be kept in cache "
+                + "at any time. By default, the tool will try to guess "
+                + "a \"safe\" value based on the input image dimensions "
+                + "and the memory heap size.\n"
+                + "0 - the cache is disabled. The smallest memory footprint. The safest. The slowest.\n"
+                + "1 - the entire input image is kept in the cache. The fastest. Prone to memory overflow.\n"
+                + "You might want to manually adjust the value to achieve the best performance for your environment.");
         inputCacheRatioOption.setType(PatternOptionBuilder.NUMBER_VALUE);
         options.addOption(inputCacheRatioOption);
 
@@ -137,13 +143,13 @@ public class Main {
 
             try {
                 long start = System.currentTimeMillis();
-                logger.info(inputFile + " - is about to start to build a pyramid.");
+                logger.info(inputFile + " - is about to start to build a pyramid. Output folder: " + outputFolder);
 
                 try (FilesArchiver archiver = FilesArchiverFactory
                         .createFromURI(outputFolder)) {
                     spb.buildPyramid(
                             //@darwinjob new DirectImageReader(inputFile),
-                    		new BioFormatsImageReader(inputFile),
+                    		new BioFormatsImageReader(inputFile, commandLine.hasOption(forceRgbOption.getOpt())),
                             inputFileBaseName,
                             archiver,
                             parallelism,
@@ -222,6 +228,6 @@ public class Main {
 	}
 
 	private static void printHelp(Options options) {
-        new HelpFormatter().printHelp("pyramidio", options);
+        new HelpFormatter().printHelp("java -jar pyramidio-cli-[version].jar -i my-image.jpg -o (my-output-folder || scheme:///path/file[.tar, .seq])", options);
     }
 }

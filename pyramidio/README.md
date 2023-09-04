@@ -52,16 +52,21 @@ java -jar pyramidio-cli-[version].jar -i my-image.tif -tf jpg -o outputfolder
 ```
 This will produce a pyramid with JPG (lossy) tiles.
 
-## 🚨 Memory overflow issues 🚨 ##
+## 🚨 Cache and memory overflow issues 🚨 ##
 
-NOTE: Starting from the version 1.1.5, if you omit the icr parameter, the tool will try to "safely" guess it based on the input image dimensions and the heap size. 
-
-By default PyramidIO is trying to read and cache the entire image into the memory to achieve the best possible performance. In case of large images it might cause memory overflow issues. There are two types of them: `java.lang.OutOfMemoryError: Java heap space` and `java.lang.RuntimeException: Cannot cache region java.awt.Rectangle`
-Both are usually fixable by using `-icr` parameter:
+Caching the entire input image into the memory provides the best performance.
+However, in case of large images it might cause memory overflow issues.
+There are two types of them: `java.lang.OutOfMemoryError: Java heap space` and `java.lang.RuntimeException: Cannot cache region java.awt.Rectangle`.
+By default the tool will try to guess a "safe" cache size and the corresponding value for it based on the input image dimensions and the memory heap size.
+If that fails for some reason or you aren't satisfied with the performance try to manually set the `-icr` parameter:
 ```
 java -jar pyramidio-cli-[version].jar -i my-image.tif -icr 0.1 -tf png -o outputfolder
 ```
-This means that only 10% of an image will be read/cached negatively affecting the performance.
+This means that only 10% of an image will be read/cached.
+
+**The `-icr` values are in range [0, 1]:**<br>
+0 - the cache is disabled. The smallest memory footprint. The safest. The slowest.<br>
+1 - the entire input image is kept in the cache. The fastest. Prone to memory overflow.
 
 You can also try to increase the heap size by using standard Java -XmX parameter. While this might increase the performance, it will NOT help in case of `java.lang.RuntimeException: Cannot cache region java.awt.Rectangle` - this is internal Bio-Formats limitation: only 2GB of data can be extracted at one time.
 
