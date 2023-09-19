@@ -325,7 +325,7 @@ function list_bucket_files(res, bucketname, folderName, token) {
 function image_to_dzi(image) {
   //
   var cmd =
-    "java -jar pyramidio/pyramidio-cli-1.1.4.jar -i " +
+    "java -jar pyramidio-cli-1.1.6.jar -i " +
     image +
     " -tf png  -o . & ";
 
@@ -604,26 +604,7 @@ function createPyramid(file_name, jobID) {
 
 
   strip_file_name = file_name.split(".")[0];
-  // only run in prod
-  // if (process.env.NODE_ENV == "production") {
-  //   var cmd = `magick identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
-  // } else {
-  //   var cmd = `squashfs-root/AppRun identify -format "%[channels]" runningJobs/${jobID}/${strip_file_name}/${file_name}`;
-  // }
-
-  // if (process.env.NODE_ENV == "production" &&  file_name.split(".")[1] == "tif") {
-  //   var numchannels = 'unknown due to openshift not supporting tiff'
-  // } 
-  // else {
-  //  var numChannels = execSync(cmd).toString().trim();
-  // }
-  // console.log('numChannels', numChannels)
-  // if (numChannels == "srgba") {
-  //   var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf png  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
-  // } else {
-  //   var cmd = `${process.env.java} -jar pyramidio/pyramidio-cli-1.1.5.jar -i runningJobs/${jobID}/${strip_file_name}/${file_name} -tf jpg  -icr 0.01 -o runningJobs/${jobID}/${strip_file_name}/ & `;
-  // }
-  var cmd = `java -jar pyramidio/pyramidio-cli-1.1.5.jar -i "runningJobs/${jobID}/${strip_file_name}/${file_name}" -tf png  -icr 0.01 -o "runningJobs/${jobID}/${strip_file_name}/" & `;
+  var cmd = `java -jar pyramidio-cli-1.1.6.jar -i "runningJobs/${jobID}/${strip_file_name}/${file_name}" -tf png  -icr 0.01 -o "runningJobs/${jobID}/${strip_file_name}/" & `;
   console.log(cmd)
   return exec(cmd, { maxBuffer: 1024 * 500 });
 }
