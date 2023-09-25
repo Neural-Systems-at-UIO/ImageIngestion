@@ -22,7 +22,7 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-runningJobs
+
 jdk-19.0.2
 ImageMagick-7.0.8-12
 .env
