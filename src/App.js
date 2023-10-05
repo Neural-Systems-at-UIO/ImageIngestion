@@ -20,7 +20,7 @@ function App() {
 
   const [message, setMessage] = useState(messages[0]);
 
-  useEffect(() => {
+  // useEffect(() => {
   //   const interval = setInterval(() => {
   //     const randomIndex = Math.floor(Math.random() * messages.length);
   //     setMessage(messages[randomIndex]);
