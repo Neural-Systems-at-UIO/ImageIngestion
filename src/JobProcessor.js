@@ -175,7 +175,7 @@ function CreateBrain(props) {
     setIsModalOpen(false);
   };
 
-  const isDisabled = !brainId || !props.selectedAtlas || brainId.includes(" ");
+  const isDisabled = !brainId || !props.selectedAtlas || brainId.includes(" ") || brainId.includes("/") || !/^[a-zA-Z0-9]+$/.test(brainId);
     //  render different tooltip based on props.createBrainActive
   function tooltipButton(props) {
     if (props.createBrainActive) {
@@ -217,7 +217,9 @@ function CreateBrain(props) {
   </div>
 
   {brainId.includes(" ") && <span style={{ color: 'red' }}>No spaces allowed</span>}
-        <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+  {brainId.includes("/") && <span style={{ color: 'red' }}>No slashes allowed</span>}
+  {!/^[a-zA-Z0-9_\-]*$/.test(brainId) && !brainId.includes(" ") && !brainId.includes("/") && <span style={{ color: 'red' }}>No special characters allowed</span>}
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
           <label htmlFor="target-atlas">Target Atlas:</label>
           <Select id="targetAtlas" value={props.selectedAtlas} onChange={handleAtlasChange} style={{ marginLeft: '1rem', width: '23.5rem' }}>
             <Option value="WHS SD Rat v4 39um">WHS SD Rat v4 39um</Option>
