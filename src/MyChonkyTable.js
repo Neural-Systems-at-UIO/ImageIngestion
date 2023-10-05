@@ -146,7 +146,7 @@ function FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setF
     button.click();
     
   }
-  if (data.id == "checkForselectedFiles") {
+  if (data.id == "change_selection") {
     console.log('checkForselectedFiles')
     console.log(data.state.selectedFiles)
     if (data.state.selectedFiles.length > 0) {
