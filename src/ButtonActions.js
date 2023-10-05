@@ -205,12 +205,20 @@ function filterForImageAndSubdir(files, bucket_name, token) {
   
   var workFlowDotFilePresent = false;
   for (let i = 0; i < files.length; i++) {
-    if (files[i].name == ".nesysWorkflowFiles") {
+
+    var newFile = getNewFile(files[i], accepted_types);
+    if (newFile == null) {
+      continue;
+    }
+    console.log('newFile', newFile)
+    console.log('files[i]', files[i])
+    if (newFile.name == ".nesysWorkflowFiles" && newFile != null)  {
       workFlowDotFilePresent = true;
       // 
     }
-    var newFile = getNewFile(files[i], accepted_types);
-    if (newFile != null) {
+
+    console.log('workFlowDotFilePresent', workFlowDotFilePresent)
+    if (newFile != null && newFile.name != ".nesysWorkflowFiles/") {
       newFiles.push(newFile);
     }
   }
