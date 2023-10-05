@@ -21,12 +21,12 @@ function App() {
   const [message, setMessage] = useState(messages[0]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const randomIndex = Math.floor(Math.random() * messages.length);
-      setMessage(messages[randomIndex]);
-    }, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  //   const interval = setInterval(() => {
+  //     const randomIndex = Math.floor(Math.random() * messages.length);
+  //     setMessage(messages[randomIndex]);
+  //   }, 10000);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   // get state from the url
   var urlParams = new URLSearchParams(window.location.search);
