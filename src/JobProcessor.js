@@ -175,8 +175,8 @@ function CreateBrain(props) {
     setIsModalOpen(false);
   };
 
-  const isDisabled = !brainId || !props.selectedAtlas;
-  //  render different tooltip based on props.createBrainActive
+  const isDisabled = !brainId || !props.selectedAtlas || brainId.includes(" ");
+    //  render different tooltip based on props.createBrainActive
   function tooltipButton(props) {
     if (props.createBrainActive) {
       return (
@@ -211,10 +211,12 @@ function CreateBrain(props) {
           {tooltipButton(props)}
       </span>
       <Modal title="Please provide some information about your brains" open={isModalOpen} onOk={click} onCancel={handleModalCancel} okButtonProps={{ disabled: isDisabled }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <label htmlFor="brainIDInput" style={{ width: '7.5rem' }}>Brain ID:</label>
-          <Input id="brainIDInput" placeholder="Enter Id for Brain" value={brainId} onChange={handleBrainIdChange} />
-        </div>
+<div style={{ display: 'flex', alignItems: 'center' }}>
+  <label htmlFor="brainIDInput" style={{ width: '7.5rem' }}>Brain ID:</label>
+  <Input id="brainIDInput" placeholder="Enter Id for Brain" value={brainId} onChange={handleBrainIdChange}  pattern="[^\s]+"/>
+  </div>
+
+  {brainId.includes(" ") && <span style={{ color: 'red' }}>No spaces allowed</span>}
         <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
           <label htmlFor="target-atlas">Target Atlas:</label>
           <Select id="targetAtlas" value={props.selectedAtlas} onChange={handleAtlasChange} style={{ marginLeft: '1rem', width: '23.5rem' }}>

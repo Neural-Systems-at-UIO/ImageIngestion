@@ -83,7 +83,7 @@ export function UploadFiles(curDirPath, setFiles,bucket_name,folder, setProgress
         
       }
     }
-
+    console.log('setProgressActive', true)
     setProgressActive(true);
     for (let i = 0; i < fileInput.files.length; i++) {
       let file = fileInput.files[i];

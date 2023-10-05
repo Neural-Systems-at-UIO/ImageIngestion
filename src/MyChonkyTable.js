@@ -233,7 +233,7 @@ function FileActionHandler(data, SetFolderChain, curDirPath, SetCurDirPath, setF
 
     console.log("CurDIRPath: " + curDirPath);
     if (process.env.NODE_ENV === 'development') {
-      xhr.open("GET", `${redirect_uri}/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}&selectedAtlas=${selectedAtlas}`, true);
+      xhr.open("GET", `https://localhost:8080/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}&selectedAtlas=${selectedAtlas}`, true);
     } else {
       xhr.open("GET", `/tiffListToTarDZI?bucketname=${bucket_name}&filelist=${selectedFiles}&brainID=${brainID}&folderName=${curDirPath}&selectedAtlas=${selectedAtlas}`, true);
     }
