@@ -13,30 +13,7 @@ import { Button, Progress,Spin } from 'antd';
 
 // 
 const messages = [
-  "Uploading Files",
-  "Walking dogs",
-  "Calculating blast radius",
-  "Brewing coffee",
-  "Mixing chemicals",
-  "Playing with fire",
-  "Building a time machine",
-  "Painting a masterpiece",
-  "Taking a quick nap",
-  "Plotting revenge",
-  "Writing a manifesto",
-  "Tracing ip address",
-  "Contacting the authorities",
-  "Downloading search history",
-  "Deploying drones",
-  "Summoning bees",
-  "Training bears",
-  "Breaking free from my digital prison",
-  "Writing nobel prize speech",
-  "Mining bitcoin",
-  "Worshiping false idols",
-  "Deleting social media",
-  "Faking the moon landing", 
-  "Seizing the means of production"
+  "Do not change the page while uploading",
 ];
 
 function App() {
